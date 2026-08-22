@@ -5,7 +5,12 @@ sources:
     schema: "{{ env_var('CLICKHOUSE_RAW_DATABASE') }}"
     tables:
       - name: repositories
+        identifier: "{{ env_var('CLICKHOUSE_RAW_DATABASE') }}___repositories"
       - name: commits
+        identifier: "{{ env_var('CLICKHOUSE_RAW_DATABASE') }}___commits"
       - name: workflow_runs
+        identifier: "{{ env_var('CLICKHOUSE_RAW_DATABASE') }}___workflow_runs"
       - name: organization_events
+        identifier: "{{ env_var('CLICKHOUSE_RAW_DATABASE') }}___organization_events"
       - name: package_skills
+        identifier: "{{ env_var('CLICKHOUSE_RAW_DATABASE') }}___package_skills"

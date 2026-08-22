@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 from pathlib import Path
 
 from blue import dry_run, progress, tofu
@@ -52,7 +53,8 @@ async def dlt_step(opts: dict) -> dict:
 async def dbt_step(opts: dict, command: str) -> dict:
     project = tools.runtime_project(opts)
     env = {"CLICKHOUSE_USER": str(opts["clickhouse-user"]), "CLICKHOUSE_PASSWORD": str(opts["clickhouse-password"]), "CLICKHOUSE_RAW_DATABASE": str(opts["clickhouse-raw-database"]), "CLICKHOUSE_ANALYTICS_DATABASE": str(opts["clickhouse-analytics-database"]), "CLICKHOUSE_MARTS_DATABASE": str(opts["clickhouse-marts-database"])}
-    result = await runtime.exec(["dbt", command, "--project-dir", project, "--profiles-dir", project], env=env)
+    dbt = str(Path(sys.executable).with_name("dbt"))
+    result = await runtime.exec([dbt, command, "--project-dir", project, "--profiles-dir", project], env=env)
     if result.exit:
         return {**opts, "blue/exit": result.exit, "blue/err": f"dbt {command} failed: {result.err or result.out}"}
     return {**opts, "blue/exit": 0, f"github-dwh/dbt-{command}": "succeeded"}

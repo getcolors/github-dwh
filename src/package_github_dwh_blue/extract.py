@@ -5,9 +5,11 @@ from collections.abc import Iterator
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 import dlt
 import requests
+from dlt.destinations.impl.clickhouse.configuration import ClickHouseCredentials
 
 API = "https://api.github.com"
 
@@ -91,8 +93,9 @@ def load(opts: dict) -> dict:
     if "organization-events" in enabled: selected.append(organization_events(client, org))
     if "workflow-runs" in enabled: selected.append(workflow_runs(client, org, names))
     if "package-skills" in enabled: selected.append(package_skills(client, org, repo_rows))
-    credentials = f"clickhouse://{opts['clickhouse-user']}:{opts['clickhouse-password']}@127.0.0.1:9000/{opts['clickhouse-raw-database']}"
-    os.environ["DESTINATION__CLICKHOUSE__CREDENTIALS"] = credentials
-    pipeline = dlt.pipeline(pipeline_name="github_dwh", destination="clickhouse", dataset_name=str(opts["clickhouse-raw-database"]), pipelines_dir=os.environ.get("DLT_PIPELINES_DIR"))
+    credentials = ClickHouseCredentials(f"clickhouse://{quote(str(opts['clickhouse-user']), safe='')}:{quote(str(opts['clickhouse-password']), safe='')}@127.0.0.1:9000/{opts['clickhouse-raw-database']}?secure=0")
+    credentials.http_port = 8123
+    destination = dlt.destinations.clickhouse(credentials=credentials)
+    pipeline = dlt.pipeline(pipeline_name="github_dwh", destination=destination, dataset_name="", pipelines_dir=os.environ.get("DLT_PIPELINES_DIR"))
     info = pipeline.run(selected)
     return {"loads_ids": list(info.loads_ids), "repositories": len(repo_rows)}
