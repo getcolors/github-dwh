@@ -78,7 +78,7 @@ services:
       SECURE_COOKIES: "true"
       TRUST_PROXY: "true"
       ALLOW_MULTIPLE_ORGS: "false"
-      SCHEDULER_ENABLED: "false"
+      SCHEDULER_ENABLED: "true"
       RUDDERSTACK_ANALYTICS_DISABLED: "true"
       LIGHTDASH_CSP_REPORT_ONLY: "false"
       LIGHTDASH_INSTALL_TYPE: docker_image

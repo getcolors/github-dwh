@@ -83,6 +83,15 @@ def login() -> requests.Session:
     return session
 
 
+def ensure_organization(session: requests.Session) -> None:
+    response = session.get(f"{LIGHTDASH_URL}/api/v1/org", timeout=30)
+    if response.ok:
+        return
+    if response.status_code not in (403, 404):
+        checked(response)
+    checked(session.put(f"{LIGHTDASH_URL}/api/v1/org", json={"name": "getcolors"}, timeout=30))
+
+
 def wait_for_job(session: requests.Session, job_uuid: str) -> None:
     deadline = time.monotonic() + 900
     while time.monotonic() < deadline:
@@ -117,7 +126,7 @@ def project_uuid(session: requests.Session) -> str:
         },
         "tableConfiguration": "all",
     }
-    return checked(session.post(f"{LIGHTDASH_URL}/api/v1/org/projects", json=body, timeout=60))["results"]["projectUuid"]
+    return checked(session.post(f"{LIGHTDASH_URL}/api/v1/org/projects", json=body, timeout=60))["results"]["project"]["projectUuid"]
 
 
 def refresh_project(session: requests.Session, project: str) -> None:
@@ -138,6 +147,7 @@ def main() -> None:
     converge_clickhouse_user()
     wait_for_lightdash()
     session = login()
+    ensure_organization(session)
     project = project_uuid(session)
     required_tables = ("repository_health", "package_skill_coverage")
     tables_ready = all(clickhouse(f"EXISTS TABLE {os.environ['CLICKHOUSE_MARTS_DATABASE']}.{table}") == "1" for table in required_tables)
