@@ -123,9 +123,9 @@ below; the MinIO items describe the configuration that was then live:
 - The package test suite passes: `12 passed`.
 - Golden output checks pass.
 
-## Current blocker
+## Blocker history (resolved 2026-08-22)
 
-`./blue create` still fails at the Ansible task:
+`./blue create` repeatedly failed at the Ansible task:
 
 ```text
 Converge Lightdash project and dashboard
@@ -156,20 +156,24 @@ container environment, so `env_var('CLICKHOUSE_RAW_DATABASE')` in
 values become viewer-visible explore metadata, so only the non-secret raw
 database name is listed — never credentials.
 
-`wait_for_job()` and the workflow's `_sync_lightdash` now include each job
-step's `stepError` in their exception instead of the generic
-`Lightdash dbt compilation failed`.
+Two further causes closed the blocker (8, 9):
 
-An earlier refresh job UUID observed while the scheduler was disabled was:
+8. Both job pollers read `status` from the jobs API, whose field is actually
+   `jobStatus`, so they saw `None` forever and reported a 900-second timeout
+   regardless of the job's real outcome. `wait_for_job()` and the workflow's
+   `_sync_lightdash` now read `jobStatus` and include each failing step's
+   `stepLabel` and `stepError` in their exception.
+9. The Ansible task passed only `LIGHTDASH_URL` and `CLICKHOUSE_URL`, but the
+   bootstrap requires the admin email, both ClickHouse users, and three
+   `COLORS_PAR_*` passwords from its environment — Ansible neither sources
+   `/etc/github-dwh/environment` nor forwards the controller's variables, so
+   under converge the script died on `KeyError` before its first request. The
+   task now passes the full set, controller-side lookups included, matching
+   the Bootstrap-collections task.
 
-```text
-c36287c9-aad9-4d40-9341-aaf9bf965949
-```
-
-It may be stale and should not be assumed to be the latest job.
-
-The dashboard/content upload has not yet been confirmed. Do not report the
-feature complete until the dashboard opens and queries ClickHouse successfully.
+A direct host invocation of the bootstrap completed on 2026-08-22, printing
+the converged project UUID (`7924970f-caa5-4ac4-9e24-64a4428b5288`) after
+uploading the space, charts, and dashboard.
 
 ## R2 migration (2026-08-22, desired state only — not yet deployed)
 

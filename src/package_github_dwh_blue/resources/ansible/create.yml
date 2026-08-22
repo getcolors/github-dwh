@@ -162,6 +162,12 @@
       environment:
         LIGHTDASH_URL: https://<{ analytics-host }>
         CLICKHOUSE_URL: http://127.0.0.1:8123
+        LIGHTDASH_ADMIN_EMAIL: <{ pocketbase-superuser-email }>
+        LIGHTDASH_CLICKHOUSE_USER: <{ lightdash-clickhouse-user }>
+        CLICKHOUSE_USER: <{ clickhouse-user }>
+        COLORS_PAR_LIGHTDASH_ADMIN_PASSWORD: "{{ lookup('env','COLORS_PAR_LIGHTDASH_ADMIN_PASSWORD') }}"
+        COLORS_PAR_LIGHTDASH_CLICKHOUSE_PASSWORD: "{{ lookup('env','COLORS_PAR_LIGHTDASH_CLICKHOUSE_PASSWORD') }}"
+        COLORS_PAR_CLICKHOUSE_PASSWORD: "{{ lookup('env','COLORS_PAR_CLICKHOUSE_PASSWORD') }}"
       no_log: true
       changed_when: false
     - name: Enable dispatcher timer
