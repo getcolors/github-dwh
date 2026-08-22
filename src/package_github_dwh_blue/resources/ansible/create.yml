@@ -165,6 +165,8 @@
         LIGHTDASH_ADMIN_EMAIL: <{ pocketbase-superuser-email }>
         LIGHTDASH_CLICKHOUSE_USER: <{ lightdash-clickhouse-user }>
         CLICKHOUSE_USER: <{ clickhouse-user }>
+        CLICKHOUSE_ANALYTICS_DATABASE: <{ clickhouse-analytics-database }>
+        CLICKHOUSE_MARTS_DATABASE: <{ clickhouse-marts-database }>
         COLORS_PAR_LIGHTDASH_ADMIN_PASSWORD: "{{ lookup('env','COLORS_PAR_LIGHTDASH_ADMIN_PASSWORD') }}"
         COLORS_PAR_LIGHTDASH_CLICKHOUSE_PASSWORD: "{{ lookup('env','COLORS_PAR_LIGHTDASH_CLICKHOUSE_PASSWORD') }}"
         COLORS_PAR_CLICKHOUSE_PASSWORD: "{{ lookup('env','COLORS_PAR_CLICKHOUSE_PASSWORD') }}"
