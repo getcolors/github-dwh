@@ -101,7 +101,9 @@ def _sync_lightdash(opts: dict) -> str:
             response.raise_for_status()
             return project_uuid
         if status == "ERROR":
-            raise RuntimeError("Lightdash dbt compilation failed")
+            steps = status_response.json()["results"].get("steps") or []
+            details = "; ".join(f"{step.get('jobStepType') or 'step'}: {step.get('stepError')}" for step in steps if step.get("stepError"))
+            raise RuntimeError(f"Lightdash dbt compilation failed: {details or 'no step error reported'}")
         time.sleep(3)
     raise RuntimeError("Lightdash dbt compilation timed out")
 

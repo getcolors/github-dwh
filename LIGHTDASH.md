@@ -148,14 +148,17 @@ There were several successive causes during implementation:
 6. A project refresh job remained pending because `SCHEDULER_ENABLED` was
    `false`. It is now `true`.
 
-After all of those fixes, the latest production convergence still failed at the
-same bootstrap task. A direct diagnostic invocation was started but interrupted
-before its final error was captured. The most likely remaining failure is the
-Lightdash dbt refresh/compilation job or subsequent content upload.
+After all of those fixes, the root cause surfaced on 2026-08-22 (7): Lightdash
+runs the project's dbt compilation in a subprocess that does not inherit the
+container environment, so `env_var('CLICKHOUSE_RAW_DATABASE')` in
+`models/sources.yml` failed to render. The fix allowlists that variable through
+`ALLOW_DBT_COMMANDS_ACCESS_TO_ENV_VARS` on the `lightdash` service. Allowlisted
+values become viewer-visible explore metadata, so only the non-secret raw
+database name is listed — never credentials.
 
-`wait_for_job()` currently converts any Lightdash job error into the generic
-message `Lightdash dbt compilation failed`, discarding the useful error details.
-Improving that diagnostic should be the first code change.
+`wait_for_job()` and the workflow's `_sync_lightdash` now include each job
+step's `stepError` in their exception instead of the generic
+`Lightdash dbt compilation failed`.
 
 An earlier refresh job UUID observed while the scheduler was disabled was:
 

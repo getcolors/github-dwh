@@ -62,6 +62,9 @@ services:
       LIGHTDASH_CSP_REPORT_ONLY: "false"
       LIGHTDASH_INSTALL_TYPE: docker_image
       LIGHTDASH_MIGRATION_EXECUTION_MODE: compose
+      # The dbt subprocess only receives allowlisted variables; values become
+      # viewer-visible explore metadata, so never allowlist credentials.
+      ALLOW_DBT_COMMANDS_ACCESS_TO_ENV_VARS: CLICKHOUSE_RAW_DATABASE
       S3_ENDPOINT: https://example.r2.cloudflarestorage.com
       S3_REGION: auto
       S3_BUCKET: github-dwh-lightdash-test

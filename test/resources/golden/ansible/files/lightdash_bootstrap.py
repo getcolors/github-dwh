@@ -100,7 +100,9 @@ def wait_for_job(session: requests.Session, job_uuid: str) -> None:
         if status == "DONE":
             return
         if status == "ERROR":
-            raise RuntimeError("Lightdash dbt compilation failed")
+            steps = result.get("steps") or []
+            details = "; ".join(f"{step.get('jobStepType') or 'step'}: {step.get('stepError')}" for step in steps if step.get("stepError"))
+            raise RuntimeError(f"Lightdash dbt compilation failed: {details or 'no step error reported'}")
         time.sleep(3)
     raise RuntimeError("Lightdash dbt compilation timed out")
 
