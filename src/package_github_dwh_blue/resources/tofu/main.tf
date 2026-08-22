@@ -53,6 +53,10 @@ resource "vultr_instance" "github_dwh" {
   firewall_group_id = vultr_firewall_group.github_dwh.id
   enable_ipv6       = false
   backups           = "enabled"
+  backups_schedule {
+    type = "daily"
+    hour = 3
+  }
   lifecycle { prevent_destroy = <{ compute-prevent-destroy }> }
 }
 
