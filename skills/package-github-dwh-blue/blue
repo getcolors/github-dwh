@@ -4,11 +4,11 @@
 # dependencies = ["package-github-dwh-blue", "blue"]
 #
 # [tool.uv.sources]
-# package-github-dwh-blue = { git = "https://github.com/getcolors/github-dwh.git", rev = "d5f85b9f2e37ebf110f9a1ef43a76798782f4be3" }
+# package-github-dwh-blue = { git = "https://github.com/getcolors/github-dwh.git", rev = "be7d0208162994ae917a9978d2edf3dc0be80cec" }
 # blue = { git = "https://github.com/getcolors/blue.git", rev = "369c5aafea790a03b649b3513003651e672f3f57" }
 # ///
 import os
-os.environ.setdefault("GITHUB_DWH_PACKAGE_REVISION", "d5f85b9f2e37ebf110f9a1ef43a76798782f4be3")
+os.environ.setdefault("GITHUB_DWH_PACKAGE_REVISION", "be7d0208162994ae917a9978d2edf3dc0be80cec")
 from package_github_dwh_blue import exec, run
 __all__ = ["run"]
 if __name__ == "__main__": exec()
