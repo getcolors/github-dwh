@@ -226,9 +226,10 @@ Before the next real `create`:
   `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` set to the state credentials. A
   plain `create` fails on the changed backend until the state is migrated.
 - The first converge runs `docker compose up` with `--remove-orphans`, which
-  stops the MinIO containers. `/var/lib/github-dwh/lightdash-minio` remains on
-  disk; remove it manually once the dashboard is confirmed against R2. Chart
-  artifacts in MinIO are regenerated caches/exports and are not migrated.
+  stops the MinIO containers. Chart artifacts in MinIO were regenerated
+  caches/exports and were not migrated; `/var/lib/github-dwh/lightdash-minio`
+  was removed from the host on 2026-08-22 after the dashboard was confirmed
+  against R2.
 
 ## Resume procedure
 
