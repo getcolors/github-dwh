@@ -9,3 +9,8 @@
     reverse_proxy pocketbase:8090
   }
 }
+
+<{ analytics-host }> {
+  encode zstd gzip
+  reverse_proxy lightdash:8080
+}

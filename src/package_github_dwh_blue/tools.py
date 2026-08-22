@@ -82,14 +82,16 @@ def _ansible_specs(opts: dict) -> list[dict]:
     targets = {
         "ansible/ansible.cfg": "ansible.cfg", "ansible/create.yml": "create.yml", "ansible/delete.yml": "delete.yml",
         "runtime/docker-compose.yml": "files/docker-compose.yml", "runtime/Dockerfile.pocketbase": "files/Dockerfile.pocketbase", "runtime/Caddyfile": "files/Caddyfile",
-        "runtime/dispatcher.py": "files/dispatcher.py", "runtime/log_api.py": "files/log_api.py", "runtime/run.py": "files/run.py", "runtime/bootstrap.py": "files/bootstrap.py",
+        "runtime/dispatcher.py": "files/dispatcher.py", "runtime/log_api.py": "files/log_api.py", "runtime/lightdash_bootstrap.py": "files/lightdash_bootstrap.py", "runtime/lightdash_content.json": "files/lightdash_content.json",
+        "runtime/run.py": "files/run.py", "runtime/bootstrap.py": "files/bootstrap.py",
         "runtime/github-dwh-dispatch.service": "files/github-dwh-dispatch.service", "runtime/github-dwh-dispatch.timer": "files/github-dwh-dispatch.timer",
         "runtime/github-dwh-blue.service": "files/github-dwh-blue.service", "runtime/github-dwh-logs.service": "files/github-dwh-logs.service",
         "runtime/colors.yml": "files/colors.yml", "runtime/index.html": "files/index.html",
         "dbt/dbt_project.yml": "files/dbt/dbt_project.yml", "dbt/profiles.yml": "files/dbt/profiles.yml", "dbt/macros/generate_schema_name.sql": "files/dbt/macros/generate_schema_name.sql",
         "dbt/models/sources.yml": "files/dbt/models/sources.yml", "dbt/models/staging/stg_repositories.sql": "files/dbt/models/staging/stg_repositories.sql",
         "dbt/models/staging/stg_commits.sql": "files/dbt/models/staging/stg_commits.sql", "dbt/models/staging/stg_workflow_runs.sql": "files/dbt/models/staging/stg_workflow_runs.sql",
-        "dbt/models/marts/repository_health.sql": "files/dbt/models/marts/repository_health.sql", "dbt/models/marts/schema.yml": "files/dbt/models/marts/schema.yml",
+        "dbt/models/staging/stg_package_skills.sql": "files/dbt/models/staging/stg_package_skills.sql", "dbt/models/marts/repository_health.sql": "files/dbt/models/marts/repository_health.sql",
+        "dbt/models/marts/package_skill_coverage.sql": "files/dbt/models/marts/package_skill_coverage.sql", "dbt/models/marts/schema.yml": "files/dbt/models/marts/schema.yml",
     }
     specs = [_spec(path, f"{directory}/{target}", data) for path, target in targets.items()]
     inventory = f"[github_dwh]\ngithub-dwh ansible_host={data['server-ip']} ansible_user=root\n"

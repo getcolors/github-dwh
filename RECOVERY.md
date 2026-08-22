@@ -2,7 +2,7 @@
 
 ## Control-plane and warehouse data
 
-The Vultr instance has daily provider backups enabled. ClickHouse data is under `/var/lib/github-dwh/clickhouse`, PocketBase state under `/var/lib/github-dwh/pocketbase`, and dlt incremental state under `/var/lib/github-dwh/dlt`.
+The Vultr instance has daily provider backups enabled. ClickHouse data is under `/var/lib/github-dwh/clickhouse`, PocketBase state under `/var/lib/github-dwh/pocketbase`, Lightdash metadata PostgreSQL under `/var/lib/github-dwh/lightdash-postgres`, and dlt incremental state under `/var/lib/github-dwh/dlt`.
 
 For whole-host recovery, restore the latest Vultr backup as a replacement instance, verify the attached firewall and `github-dwh.bigconfig.space` A record, then run the Package Skill `create` event to reconverge software and systemd units. Do not run `delete` as a recovery operation.
 
@@ -12,9 +12,11 @@ GitHub is the source of truth for repositories, commits, workflow runs, and Pack
 
 GitHub organization events are a recent, bounded feed and cannot be reconstructed beyond GitHub's retention window. Recover these from the ClickHouse backup when historical continuity matters.
 
-## PocketBase access
+## PocketBase and Lightdash access
 
-The superuser email is non-secret desired state. Its password remains only in the deployment's `.envrc.private` and `/etc/github-dwh/environment` on the host. To rotate it, update the local private value and run `create`; Ansible upserts the PocketBase superuser and rewrites the protected environment file.
+The shared admin email is non-secret desired state. Passwords remain only in the deployment's `.envrc.private` and `/etc/github-dwh/environment` on the host. To rotate the PocketBase password, update its local private value and run `create`; Ansible upserts the PocketBase superuser and rewrites the protected environment file.
+
+Lightdash encryption depends on a stable `COLORS_PAR_LIGHTDASH_SECRET`; restore it together with the PostgreSQL data or stored warehouse credentials cannot be decrypted. Restore `COLORS_PAR_LIGHTDASH_ADMIN_PASSWORD`, `COLORS_PAR_LIGHTDASH_POSTGRES_PASSWORD`, and `COLORS_PAR_LIGHTDASH_CLICKHOUSE_PASSWORD` before running `create`. The bootstrap converges the read-only ClickHouse user, semantic project, and dashboard. Changing the Lightdash admin password in desired state does not rotate an existing Lightdash account; rotate that password in Lightdash first, then update the private environment.
 
 ## Diagnostics
 
@@ -25,6 +27,7 @@ journalctl -u github-dwh-run-<run-id>.service
 docker compose -f /opt/github-dwh/docker-compose.yml ps
 curl http://127.0.0.1:8090/api/health
 curl http://127.0.0.1:8123/ping
+curl http://127.0.0.1:8080/api/v1/health
 ```
 
 Retry failures by creating a new complete run. Do not edit run steps or add task-level retry state to PocketBase.

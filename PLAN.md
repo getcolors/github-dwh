@@ -7,11 +7,11 @@ Deliver `github-dwh` as a Blue Package Skill and `github-dwh-vultr` as its live 
 ## Architecture
 
 1. OpenTofu manages one Vultr instance, its dedicated SSH key, firewall, and the Cloudflare A record.
-2. Ansible installs Docker, ClickHouse, PocketBase, Caddy, the application runtime, and two systemd timers.
+2. Ansible installs Docker, ClickHouse, PocketBase, Lightdash with PostgreSQL metadata, Caddy, the application runtime, and systemd supervision.
 3. The dispatcher timer translates PocketBase schedules and queued manual requests into transient systemd units.
 4. A run wrapper records provenance and invokes exactly one `./blue run` process.
 5. Blue validates configuration, invokes dlt, runs dbt-clickhouse, tests models, and publishes a secret-safe summary.
-6. ClickHouse owns raw and analytical data; PocketBase stores only control-plane intent and workflow-level evidence; journald stores logs.
+6. ClickHouse owns raw and analytical data; PocketBase stores only control-plane intent and workflow-level evidence; Lightdash visualizes read-only marts; journald stores logs.
 
 ## Data scope
 
@@ -33,7 +33,7 @@ Loads merge on stable GitHub IDs or commit SHA. Events overlap and deduplicate b
 - unit tests stub subprocesses and HTTP;
 - launcher payload equals the root launcher;
 - a real create converges and a second create remains convergent;
-- DNS, HTTPS, PocketBase health, ClickHouse health, systemd timers, and one real warehouse run pass;
+- DNS, HTTPS, PocketBase health, ClickHouse health, Lightdash health and dashboard queries, systemd timers, and one real warehouse run pass;
 - no secret, generated output, or private SSH key is tracked.
 
 ## Explicit non-goals

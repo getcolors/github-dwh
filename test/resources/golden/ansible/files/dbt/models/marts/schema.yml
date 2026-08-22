@@ -2,8 +2,117 @@ version: 2
 models:
   - name: repository_health
     description: One current health row for every repository accessible to the getcolors credential.
+    config:
+      tags: [lightdash]
+    meta:
+      label: Repository health
+      description: Current GitHub repository activity, workflow outcomes, and Package Skill coverage inputs.
+      metrics:
+        repository_count:
+          label: Repositories
+          type: count_distinct
+          sql: ${TABLE}.repository_id
+          description: Number of repositories visible to the warehouse credential.
+        active_repository_count:
+          label: Active repositories
+          type: count
+          sql: ${TABLE}.repository_id
+          filters:
+            - is_archived: false
+        archived_repository_count:
+          label: Archived repositories
+          type: count
+          sql: ${TABLE}.repository_id
+          filters:
+            - is_archived: true
+        private_repository_count:
+          label: Private repositories
+          type: count
+          sql: ${TABLE}.repository_id
+          filters:
+            - is_private: true
     columns:
       - name: repository_id
+        description: Stable GitHub repository identifier.
         tests: [not_null, unique]
       - name: repository_name
+        description: Repository name within the getcolors organization.
         tests: [not_null, unique]
+        meta:
+          dimension:
+            urls:
+              - label: Open on GitHub
+                url: https://github.com/getcolors/${ value.raw }
+      - name: full_name
+        description: GitHub owner and repository name.
+      - name: is_private
+        description: Whether GitHub limits repository visibility.
+      - name: is_archived
+        description: Whether the repository is archived on GitHub.
+      - name: default_branch
+        description: Repository default branch.
+      - name: pushed_at
+        description: Most recent GitHub push timestamp.
+      - name: last_commit_at
+        description: Most recent authored commit loaded into the warehouse.
+      - name: commit_count
+        description: Number of commits currently loaded for the repository.
+        meta:
+          metrics:
+            total_commits:
+              label: Loaded commits
+              type: sum
+      - name: last_workflow_at
+        description: Most recent GitHub Actions workflow run timestamp.
+      - name: successful_runs
+        description: Successful GitHub Actions workflow runs currently loaded.
+        meta:
+          metrics:
+            successful_workflow_runs:
+              label: Successful workflows
+              type: sum
+      - name: failed_runs
+        description: Failed GitHub Actions workflow runs currently loaded.
+        meta:
+          metrics:
+            failed_workflow_runs:
+              label: Failed workflows
+              type: sum
+  - name: package_skill_coverage
+    description: Repository-level inventory of Package Skill definitions, lockfiles, and desired-state metadata.
+    config:
+      tags: [lightdash]
+    meta:
+      label: Package Skill coverage
+      metrics:
+        covered_repository_count:
+          label: Repositories with Package Skill metadata
+          type: count_distinct
+          sql: ${TABLE}.repository_name
+    columns:
+      - name: repository_name
+        description: Repository containing Package Skill or deployment metadata.
+        tests: [not_null, unique]
+        meta:
+          dimension:
+            urls:
+              - label: Open on GitHub
+                url: https://github.com/getcolors/${ value.raw }
+      - name: tracked_metadata_files
+        description: Number of tracked Package Skill and desired-state metadata files.
+        meta:
+          metrics:
+            total_metadata_files:
+              label: Tracked metadata files
+              type: sum
+      - name: skill_definition_count
+        description: Number of tracked SKILL.md definitions.
+        meta:
+          metrics:
+            package_skill_definition_count:
+              label: Package Skill definitions
+              type: sum
+      - name: has_skills_lock
+        description: Whether the repository has an installed skills-lock.json.
+      - name: last_inspected_at
+        description: Latest extraction timestamp for the repository metadata.

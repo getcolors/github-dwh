@@ -9,3 +9,8 @@ github-dwh.example.com {
     reverse_proxy pocketbase:8090
   }
 }
+
+analytics.github-dwh.example.com {
+  encode zstd gzip
+  reverse_proxy lightdash:8080
+}

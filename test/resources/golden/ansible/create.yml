@@ -35,6 +35,7 @@
         - { path: /var/lib/github-dwh/dlt }
         - { path: /var/lib/github-dwh/pocketbase }
         - { path: /var/lib/github-dwh/clickhouse }
+        - { path: /var/lib/github-dwh/lightdash-postgres, mode: '0700' }
         - { path: /etc/github-dwh, mode: '0700' }
     - name: Copy runtime files
       ansible.builtin.copy:
@@ -47,6 +48,8 @@
         - { src: Caddyfile, dest: /opt/github-dwh/Caddyfile }
         - { src: dispatcher.py, dest: /opt/github-dwh/dispatcher.py, mode: '0755' }
         - { src: log_api.py, dest: /opt/github-dwh/log_api.py, mode: '0755' }
+        - { src: lightdash_bootstrap.py, dest: /opt/github-dwh/lightdash_bootstrap.py, mode: '0755' }
+        - { src: lightdash_content.json, dest: /opt/github-dwh/lightdash_content.json }
         - { src: run.py, dest: /opt/github-dwh/run.py, mode: '0755' }
         - { src: bootstrap.py, dest: /opt/github-dwh/bootstrap.py, mode: '0755' }
         - { src: index.html, dest: /opt/github-dwh/pb_public/index.html }
@@ -58,7 +61,9 @@
         - { src: dbt/models/staging/stg_repositories.sql, dest: /opt/github-dwh/dbt/models/staging/stg_repositories.sql }
         - { src: dbt/models/staging/stg_commits.sql, dest: /opt/github-dwh/dbt/models/staging/stg_commits.sql }
         - { src: dbt/models/staging/stg_workflow_runs.sql, dest: /opt/github-dwh/dbt/models/staging/stg_workflow_runs.sql }
+        - { src: dbt/models/staging/stg_package_skills.sql, dest: /opt/github-dwh/dbt/models/staging/stg_package_skills.sql }
         - { src: dbt/models/marts/repository_health.sql, dest: /opt/github-dwh/dbt/models/marts/repository_health.sql }
+        - { src: dbt/models/marts/package_skill_coverage.sql, dest: /opt/github-dwh/dbt/models/marts/package_skill_coverage.sql }
         - { src: dbt/models/marts/schema.yml, dest: /opt/github-dwh/dbt/models/marts/schema.yml }
     - name: Render secret environment
       ansible.builtin.copy:
@@ -68,7 +73,20 @@
           COLORS_PAR_GITHUB_TOKEN={{ lookup('env','COLORS_PAR_GITHUB_TOKEN') }}
           COLORS_PAR_CLICKHOUSE_PASSWORD={{ lookup('env','COLORS_PAR_CLICKHOUSE_PASSWORD') }}
           CLICKHOUSE_PASSWORD={{ lookup('env','COLORS_PAR_CLICKHOUSE_PASSWORD') }}
+          CLICKHOUSE_USER=github_dwh
+          CLICKHOUSE_RAW_DATABASE=raw_github
+          CLICKHOUSE_ANALYTICS_DATABASE=analytics
+          CLICKHOUSE_MARTS_DATABASE=marts
           COLORS_PAR_POCKETBASE_SUPERUSER_PASSWORD={{ lookup('env','COLORS_PAR_POCKETBASE_SUPERUSER_PASSWORD') }}
+          COLORS_PAR_LIGHTDASH_ADMIN_PASSWORD={{ lookup('env','COLORS_PAR_LIGHTDASH_ADMIN_PASSWORD') }}
+          COLORS_PAR_LIGHTDASH_CLICKHOUSE_PASSWORD={{ lookup('env','COLORS_PAR_LIGHTDASH_CLICKHOUSE_PASSWORD') }}
+          LIGHTDASH_SECRET={{ lookup('env','COLORS_PAR_LIGHTDASH_SECRET') }}
+          LIGHTDASH_ADMIN_EMAIL=admin@example.com
+          LIGHTDASH_CLICKHOUSE_USER=lightdash
+          POSTGRES_USER=lightdash
+          POSTGRES_DB=lightdash
+          POSTGRES_PASSWORD={{ lookup('env','COLORS_PAR_LIGHTDASH_POSTGRES_PASSWORD') }}
+          PGPASSWORD={{ lookup('env','COLORS_PAR_LIGHTDASH_POSTGRES_PASSWORD') }}
           POCKETBASE_URL=http://127.0.0.1:8090
           POCKETBASE_SUPERUSER_EMAIL=admin@example.com
           DLT_PIPELINES_DIR=/var/lib/github-dwh/dlt
@@ -107,6 +125,14 @@
       retries: 30
       delay: 2
       until: pb_health.status == 200
+    - name: Wait for Lightdash
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8080/api/v1/health
+        status_code: 200
+      register: lightdash_health
+      retries: 120
+      delay: 5
+      until: lightdash_health.status == 200
     - name: Upsert PocketBase superuser
       ansible.builtin.command:
         cmd: >-
@@ -122,6 +148,13 @@
         POCKETBASE_URL: http://127.0.0.1:8090
         POCKETBASE_SUPERUSER_EMAIL: admin@example.com
         POCKETBASE_SUPERUSER_PASSWORD: "{{ lookup('env','COLORS_PAR_POCKETBASE_SUPERUSER_PASSWORD') }}"
+      no_log: true
+      changed_when: false
+    - name: Converge Lightdash project and dashboard
+      ansible.builtin.command: /opt/github-dwh/.venv/bin/python /opt/github-dwh/lightdash_bootstrap.py
+      environment:
+        LIGHTDASH_URL: http://127.0.0.1:8080
+        CLICKHOUSE_URL: http://127.0.0.1:8123
       no_log: true
       changed_when: false
     - name: Enable dispatcher timer

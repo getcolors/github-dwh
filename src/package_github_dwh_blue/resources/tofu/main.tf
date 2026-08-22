@@ -71,7 +71,15 @@ resource "cloudflare_dns_record" "control" {
   ttl     = 1
   proxied = true
 }
+resource "cloudflare_dns_record" "analytics" {
+  zone_id = data.cloudflare_zone.control.id
+  name    = "<{ analytics-host }>"
+  content = vultr_instance.github_dwh.main_ip
+  type    = "A"
+  ttl     = 1
+  proxied = true
+}
 
 output "infra" {
-  value = { ip = vultr_instance.github_dwh.main_ip, host = "<{ control-plane-host }>" }
+  value = { ip = vultr_instance.github_dwh.main_ip, host = "<{ control-plane-host }>", analytics_host = "<{ analytics-host }>" }
 }

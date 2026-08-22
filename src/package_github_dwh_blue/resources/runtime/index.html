@@ -80,7 +80,7 @@ h2 { margin: 0; font: 800 clamp(32px, 4vw, 48px)/1 var(--display); letter-spacin
 .appbar { padding: 17px clamp(20px, 4vw, 58px); display: flex; justify-content: space-between; align-items: center; gap: 20px; border-bottom: 1px solid rgba(20,45,50,.2); }
 .appbar-actions { display: flex; align-items: center; gap: 16px; }
 .last-refresh { color: var(--ink-soft); font: 10px/1 var(--utility); text-transform: uppercase; letter-spacing: .07em; }
-.text-button { border: 0; padding: 6px 0; color: var(--ink); background: transparent; border-bottom: 1px solid var(--steel); font-weight: 700; }
+.text-button { border: 0; padding: 6px 0; color: var(--ink); background: transparent; border-bottom: 1px solid var(--steel); font-weight: 700; text-decoration: none; }
 .dashboard { max-width: 1460px; margin: 0 auto; padding: clamp(36px, 6vw, 80px) clamp(20px, 4vw, 58px) 80px; }
 .dashboard-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 30px; }
 .dashboard-head h1 { max-width: 820px; font-size: clamp(48px, 7vw, 88px); }
@@ -217,7 +217,7 @@ tbody tr:hover { background: #f1f6f5; }
   <main id="app" class="app" hidden>
     <div class="appbar">
       <div><span class="eyebrow" style="margin:0">github-getcolors / production</span></div>
-      <div class="appbar-actions"><span id="last-refresh" class="last-refresh">Not refreshed</span><button class="text-button" id="system-logs-button" type="button">System logs</button><button class="text-button" id="signout-button" type="button">Sign out</button></div>
+      <div class="appbar-actions"><span id="last-refresh" class="last-refresh">Not refreshed</span><a class="text-button" href="https://<{ analytics-host }>" target="_blank" rel="noopener">Analytics</a><button class="text-button" id="system-logs-button" type="button">System logs</button><button class="text-button" id="signout-button" type="button">Sign out</button></div>
     </div>
     <div class="dashboard">
       <header class="dashboard-head">
@@ -248,7 +248,7 @@ tbody tr:hover { background: #f1f6f5; }
   <section id="log-viewer" class="log-viewer" role="dialog" aria-modal="true" aria-labelledby="log-title" hidden>
     <header class="log-head"><div><span class="log-kicker">Journald · read only · secrets redacted</span><h2 class="log-title" id="log-title">System logs</h2></div><button class="log-close" id="log-close" type="button" aria-label="Close log viewer">×</button></header>
     <div class="log-controls">
-      <div class="log-control"><label for="log-source">Source</label><select id="log-source"><option value="dispatcher">Dispatcher</option><option value="caddy">Caddy</option><option value="pocketbase">PocketBase</option><option value="clickhouse">ClickHouse</option><option value="docker">Docker daemon</option></select></div>
+      <div class="log-control"><label for="log-source">Source</label><select id="log-source"><option value="dispatcher">Dispatcher</option><option value="caddy">Caddy</option><option value="pocketbase">PocketBase</option><option value="clickhouse">ClickHouse</option><option value="lightdash">Lightdash</option><option value="lightdash-postgres">Lightdash PostgreSQL</option><option value="docker">Docker daemon</option></select></div>
       <div class="log-control"><label for="log-search">Search loaded lines</label><input id="log-search" type="search" placeholder="Filter messages or streams"></div>
       <div class="log-control"><label for="log-severity">Severity</label><select id="log-severity"><option value="all">All levels</option><option value="problem">Errors only</option><option value="warning">Warnings</option><option value="notice">Notices</option><option value="info">Info</option><option value="debug">Debug</option></select></div>
       <div class="log-toggles"><label><input id="log-wrap" type="checkbox" checked> Wrap</label><label><input id="log-autoscroll" type="checkbox" checked> Follow</label></div>

@@ -3,11 +3,13 @@ from __future__ import annotations
 REQUIRED = {
     "profile": str,
     "control-plane-host": str,
+    "analytics-host": str,
     "github-org": str,
     "clickhouse-raw-database": str,
     "clickhouse-analytics-database": str,
     "clickhouse-marts-database": str,
     "clickhouse-user": str,
+    "lightdash-clickhouse-user": str,
     "pocketbase-superuser-email": str,
     "vultr-name": str,
     "vultr-region": str,
@@ -17,8 +19,8 @@ REQUIRED = {
     "ssh-private-key": str,
 }
 
-CREATE_SECRETS = ("vultr-api-key", "cloudflare-api-token", "clickhouse-password", "pocketbase-superuser-password", "github-token")
-RUN_SECRETS = ("github-token", "clickhouse-password")
+CREATE_SECRETS = ("vultr-api-key", "cloudflare-api-token", "clickhouse-password", "pocketbase-superuser-password", "github-token", "lightdash-admin-password", "lightdash-secret", "lightdash-postgres-password", "lightdash-clickhouse-password")
+RUN_SECRETS = ("github-token", "clickhouse-password", "lightdash-admin-password")
 
 
 def state_errors(opts: dict) -> list[str]:
@@ -36,8 +38,13 @@ def state_errors(opts: dict) -> list[str]:
     if opts.get("provider-backend") not in (None, "local"):
         errors.append("provider-backend must be local")
     host = str(opts.get("control-plane-host") or "")
+    analytics_host = str(opts.get("analytics-host") or "")
     if host and "." not in host:
         errors.append("control-plane-host must be a fully qualified domain name")
+    if analytics_host and "." not in analytics_host:
+        errors.append("analytics-host must be a fully qualified domain name")
+    if host and analytics_host and host == analytics_host:
+        errors.append("analytics-host must differ from control-plane-host")
     resources = opts.get("github-resources")
     if not isinstance(resources, list) or not resources:
         errors.append("github-resources must be a non-empty list")

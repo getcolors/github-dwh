@@ -1,0 +1,112 @@
+{
+  "space": {
+    "contentType": "space",
+    "version": 1,
+    "spaceName": "GitHub organization analytics",
+    "slug": "github-organization-analytics"
+  },
+  "charts": [
+    {
+      "name": "Repositories",
+      "description": "All repositories visible to the warehouse credential.",
+      "tableName": "repository_health",
+      "metricQuery": {"exploreName":"repository_health","dimensions":[],"metrics":["repository_health_repository_count"],"filters":{},"sorts":[],"limit":500,"metricOverrides":{},"tableCalculations":[],"additionalMetrics":[],"customDimensions":[]},
+      "chartConfig": {"type":"big_number","config":{"selectedField":"repository_health_repository_count","label":"Repositories","showBigNumberLabel":true}},
+      "slug": "repositories",
+      "spaceSlug": "github-organization-analytics",
+      "version": 1
+    },
+    {
+      "name": "Active repositories",
+      "description": "Repositories that are not archived.",
+      "tableName": "repository_health",
+      "metricQuery": {"exploreName":"repository_health","dimensions":[],"metrics":["repository_health_active_repository_count"],"filters":{},"sorts":[],"limit":500,"metricOverrides":{},"tableCalculations":[],"additionalMetrics":[],"customDimensions":[]},
+      "chartConfig": {"type":"big_number","config":{"selectedField":"repository_health_active_repository_count","label":"Active repositories","showBigNumberLabel":true}},
+      "slug": "active-repositories",
+      "spaceSlug": "github-organization-analytics",
+      "version": 1
+    },
+    {
+      "name": "Loaded commits",
+      "description": "Commits currently retained in the GitHub warehouse.",
+      "tableName": "repository_health",
+      "metricQuery": {"exploreName":"repository_health","dimensions":[],"metrics":["repository_health_total_commits"],"filters":{},"sorts":[],"limit":500,"metricOverrides":{},"tableCalculations":[],"additionalMetrics":[],"customDimensions":[]},
+      "chartConfig": {"type":"big_number","config":{"selectedField":"repository_health_total_commits","label":"Loaded commits","showBigNumberLabel":true}},
+      "slug": "loaded-commits",
+      "spaceSlug": "github-organization-analytics",
+      "version": 1
+    },
+    {
+      "name": "Successful workflows",
+      "description": "Successful GitHub Actions runs currently loaded.",
+      "tableName": "repository_health",
+      "metricQuery": {"exploreName":"repository_health","dimensions":[],"metrics":["repository_health_successful_workflow_runs"],"filters":{},"sorts":[],"limit":500,"metricOverrides":{},"tableCalculations":[],"additionalMetrics":[],"customDimensions":[]},
+      "chartConfig": {"type":"big_number","config":{"selectedField":"repository_health_successful_workflow_runs","label":"Successful workflows","showBigNumberLabel":true}},
+      "slug": "successful-workflows",
+      "spaceSlug": "github-organization-analytics",
+      "version": 1
+    },
+    {
+      "name": "Failed workflows",
+      "description": "Failed GitHub Actions runs currently loaded.",
+      "tableName": "repository_health",
+      "metricQuery": {"exploreName":"repository_health","dimensions":[],"metrics":["repository_health_failed_workflow_runs"],"filters":{},"sorts":[],"limit":500,"metricOverrides":{},"tableCalculations":[],"additionalMetrics":[],"customDimensions":[]},
+      "chartConfig": {"type":"big_number","config":{"selectedField":"repository_health_failed_workflow_runs","label":"Failed workflows","showBigNumberLabel":true,"flipColors":true}},
+      "slug": "failed-workflows",
+      "spaceSlug": "github-organization-analytics",
+      "version": 1
+    },
+    {
+      "name": "Package Skill coverage",
+      "description": "Repositories with Package Skill or deployment metadata.",
+      "tableName": "package_skill_coverage",
+      "metricQuery": {"exploreName":"package_skill_coverage","dimensions":[],"metrics":["package_skill_coverage_covered_repository_count"],"filters":{},"sorts":[],"limit":500,"metricOverrides":{},"tableCalculations":[],"additionalMetrics":[],"customDimensions":[]},
+      "chartConfig": {"type":"big_number","config":{"selectedField":"package_skill_coverage_covered_repository_count","label":"Metadata coverage","showBigNumberLabel":true}},
+      "slug": "package-skill-coverage",
+      "spaceSlug": "github-organization-analytics",
+      "version": 1
+    },
+    {
+      "name": "Repository activity",
+      "description": "Repository-level activity and workflow outcomes.",
+      "tableName": "repository_health",
+      "metricQuery": {"exploreName":"repository_health","dimensions":["repository_health_repository_name","repository_health_is_private","repository_health_is_archived","repository_health_pushed_at","repository_health_last_commit_at","repository_health_last_workflow_at"],"metrics":["repository_health_total_commits","repository_health_successful_workflow_runs","repository_health_failed_workflow_runs"],"filters":{},"sorts":[{"fieldId":"repository_health_last_commit_at","descending":true}],"limit":500,"metricOverrides":{},"tableCalculations":[],"additionalMetrics":[],"customDimensions":[]},
+      "chartConfig": {"type":"table","config":{"columns":{},"metricsAsRows":false,"showSubtotals":false,"hideRowNumbers":false,"showTableNames":false,"showResultsTotal":true,"showRowCalculation":false,"showColumnCalculation":false,"conditionalFormattings":[]}},
+      "slug": "repository-activity",
+      "spaceSlug": "github-organization-analytics",
+      "version": 1,
+      "tableConfig": {"columnOrder":["repository_health_repository_name","repository_health_is_private","repository_health_is_archived","repository_health_pushed_at","repository_health_last_commit_at","repository_health_last_workflow_at","repository_health_total_commits","repository_health_successful_workflow_runs","repository_health_failed_workflow_runs"]}
+    },
+    {
+      "name": "Package Skill inventory",
+      "description": "Package Skill definitions and lockfile coverage by repository.",
+      "tableName": "package_skill_coverage",
+      "metricQuery": {"exploreName":"package_skill_coverage","dimensions":["package_skill_coverage_repository_name","package_skill_coverage_has_skills_lock","package_skill_coverage_last_inspected_at"],"metrics":["package_skill_coverage_total_metadata_files","package_skill_coverage_package_skill_definition_count"],"filters":{},"sorts":[{"fieldId":"package_skill_coverage_package_skill_definition_count","descending":true}],"limit":500,"metricOverrides":{},"tableCalculations":[],"additionalMetrics":[],"customDimensions":[]},
+      "chartConfig": {"type":"table","config":{"columns":{},"metricsAsRows":false,"showSubtotals":false,"hideRowNumbers":false,"showTableNames":false,"showResultsTotal":true,"showRowCalculation":false,"showColumnCalculation":false,"conditionalFormattings":[]}},
+      "slug": "package-skill-inventory",
+      "spaceSlug": "github-organization-analytics",
+      "version": 1,
+      "tableConfig": {"columnOrder":["package_skill_coverage_repository_name","package_skill_coverage_has_skills_lock","package_skill_coverage_last_inspected_at","package_skill_coverage_total_metadata_files","package_skill_coverage_package_skill_definition_count"]}
+    }
+  ],
+  "dashboard": {
+    "name": "getcolors GitHub overview",
+    "description": "Organization-wide repository activity, workflow outcomes, and Package Skill coverage.",
+    "slug": "getcolors-github-overview",
+    "spaceSlug": "github-organization-analytics",
+    "version": 1,
+    "tabs": [],
+    "filters": {"dimensions":[],"metrics":[],"tableCalculations":[]},
+    "tiles": [
+      {"x":0,"y":0,"h":3,"w":36,"type":"markdown","tileSlug":"overview-note","properties":{"title":"Warehouse scope","hideFrame":false,"content":"GitHub analytics for every repository accessible to the getcolors warehouse credential. Data is loaded by dlt, modeled and tested by dbt, and queried live from ClickHouse."}},
+      {"x":0,"y":3,"h":5,"w":6,"type":"saved_chart","tileSlug":"repositories","properties":{"title":"Repositories","hideTitle":true,"chartSlug":"repositories","chartName":"Repositories"}},
+      {"x":6,"y":3,"h":5,"w":6,"type":"saved_chart","tileSlug":"active-repositories","properties":{"title":"Active repositories","hideTitle":true,"chartSlug":"active-repositories","chartName":"Active repositories"}},
+      {"x":12,"y":3,"h":5,"w":6,"type":"saved_chart","tileSlug":"loaded-commits","properties":{"title":"Loaded commits","hideTitle":true,"chartSlug":"loaded-commits","chartName":"Loaded commits"}},
+      {"x":18,"y":3,"h":5,"w":6,"type":"saved_chart","tileSlug":"successful-workflows","properties":{"title":"Successful workflows","hideTitle":true,"chartSlug":"successful-workflows","chartName":"Successful workflows"}},
+      {"x":24,"y":3,"h":5,"w":6,"type":"saved_chart","tileSlug":"failed-workflows","properties":{"title":"Failed workflows","hideTitle":true,"chartSlug":"failed-workflows","chartName":"Failed workflows"}},
+      {"x":30,"y":3,"h":5,"w":6,"type":"saved_chart","tileSlug":"package-skill-coverage","properties":{"title":"Package Skill coverage","hideTitle":true,"chartSlug":"package-skill-coverage","chartName":"Package Skill coverage"}},
+      {"x":0,"y":8,"h":14,"w":36,"type":"saved_chart","tileSlug":"repository-activity","properties":{"title":"Repository activity","hideTitle":false,"chartSlug":"repository-activity","chartName":"Repository activity"}},
+      {"x":0,"y":22,"h":12,"w":36,"type":"saved_chart","tileSlug":"package-skill-inventory","properties":{"title":"Package Skill inventory","hideTitle":false,"chartSlug":"package-skill-inventory","chartName":"Package Skill inventory"}}
+    ]
+  }
+}

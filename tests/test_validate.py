@@ -12,4 +12,5 @@ def test_run_requires_only_data_credentials():
     assert secret_errors({}, "run") == [
         "required credential is not set: COLORS_PAR_GITHUB_TOKEN",
         "required credential is not set: COLORS_PAR_CLICKHOUSE_PASSWORD",
+        "required credential is not set: COLORS_PAR_LIGHTDASH_ADMIN_PASSWORD",
     ]

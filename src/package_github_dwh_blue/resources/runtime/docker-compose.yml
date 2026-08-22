@@ -26,10 +26,52 @@ services:
       - 127.0.0.1:8090:8090
     logging:
       driver: journald
+  lightdash-db:
+    image: postgres:16.10-bookworm
+    restart: unless-stopped
+    env_file: /etc/github-dwh/environment
+    volumes:
+      - /var/lib/github-dwh/lightdash-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U lightdash -d lightdash"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    logging:
+      driver: journald
+  lightdash:
+    image: lightdash/lightdash:1.237.0
+    restart: unless-stopped
+    depends_on:
+      lightdash-db:
+        condition: service_healthy
+      clickhouse:
+        condition: service_started
+    env_file: /etc/github-dwh/environment
+    environment:
+      PGHOST: lightdash-db
+      PGPORT: "5432"
+      PGUSER: lightdash
+      PGDATABASE: lightdash
+      SITE_URL: https://<{ analytics-host }>
+      SECURE_COOKIES: "true"
+      TRUST_PROXY: "true"
+      ALLOW_MULTIPLE_ORGS: "false"
+      SCHEDULER_ENABLED: "false"
+      RUDDERSTACK_ANALYTICS_DISABLED: "true"
+      LIGHTDASH_CSP_REPORT_ONLY: "false"
+      LIGHTDASH_INSTALL_TYPE: docker_image
+      LIGHTDASH_MIGRATION_EXECUTION_MODE: compose
+    volumes:
+      - /opt/github-dwh/dbt:/usr/app/dbt
+    ports:
+      - 127.0.0.1:8080:8080
+    logging:
+      driver: journald
   caddy:
     image: caddy:2.10.2-alpine
     restart: unless-stopped
-    depends_on: [pocketbase]
+    depends_on: [pocketbase, lightdash]
     volumes:
       - /opt/github-dwh/Caddyfile:/etc/caddy/Caddyfile:ro
       - /opt/github-dwh/run:/opt/github-dwh/run:ro
