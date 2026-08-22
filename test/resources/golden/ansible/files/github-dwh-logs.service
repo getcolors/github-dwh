@@ -6,9 +6,7 @@ Wants=docker.service
 [Service]
 Type=simple
 EnvironmentFile=/etc/github-dwh/environment
-Environment=LOG_API_SOCKET=/run/github-dwh/log-api.sock
-RuntimeDirectory=github-dwh
-RuntimeDirectoryMode=0755
+Environment=LOG_API_SOCKET=/opt/github-dwh/run/log-api.sock
 ExecStart=/opt/github-dwh/.venv/bin/python /opt/github-dwh/log_api.py
 Restart=on-failure
 RestartSec=2
@@ -19,7 +17,7 @@ ProtectHome=true
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
-ReadWritePaths=/run/github-dwh
+ReadWritePaths=/opt/github-dwh/run
 
 [Install]
 WantedBy=multi-user.target

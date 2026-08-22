@@ -2,7 +2,7 @@
   encode zstd gzip
 
   handle /control/logs/* {
-    reverse_proxy unix//run/github-dwh/log-api.sock
+    reverse_proxy unix//opt/github-dwh/run/log-api.sock
   }
 
   handle {

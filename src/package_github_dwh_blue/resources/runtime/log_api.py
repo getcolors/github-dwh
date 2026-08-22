@@ -16,7 +16,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 import requests
 
 POCKETBASE_URL = os.environ.get("POCKETBASE_URL", "http://127.0.0.1:8090")
-SOCKET_PATH = Path(os.environ.get("LOG_API_SOCKET", "/run/github-dwh/log-api.sock"))
+SOCKET_PATH = Path(os.environ.get("LOG_API_SOCKET", "/opt/github-dwh/run/log-api.sock"))
 MAX_LINES = 2000
 SOURCES = {
     "dispatcher": ("unit", "github-dwh-dispatch.service"),

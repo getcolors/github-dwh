@@ -31,6 +31,7 @@
         - { path: /opt/github-dwh/dbt/models/staging }
         - { path: /opt/github-dwh/dbt/models/marts }
         - { path: /opt/github-dwh/pb_public }
+        - { path: /opt/github-dwh/run }
         - { path: /var/lib/github-dwh/dlt }
         - { path: /var/lib/github-dwh/pocketbase }
         - { path: /var/lib/github-dwh/clickhouse }
