@@ -36,6 +36,7 @@
         - { path: /var/lib/github-dwh/pocketbase }
         - { path: /var/lib/github-dwh/clickhouse }
         - { path: /var/lib/github-dwh/lightdash-postgres, mode: '0700' }
+        - { path: /var/lib/github-dwh/lightdash-minio, mode: '0700' }
         - { path: /etc/github-dwh, mode: '0700' }
     - name: Copy runtime files
       ansible.builtin.copy:
@@ -83,6 +84,9 @@
           LIGHTDASH_SECRET={{ lookup('env','COLORS_PAR_LIGHTDASH_SECRET') }}
           LIGHTDASH_ADMIN_EMAIL=<{ pocketbase-superuser-email }>
           LIGHTDASH_CLICKHOUSE_USER=<{ lightdash-clickhouse-user }>
+          MINIO_ROOT_USER=lightdash
+          MINIO_ROOT_PASSWORD={{ lookup('env','COLORS_PAR_LIGHTDASH_S3_PASSWORD') }}
+          S3_SECRET_KEY={{ lookup('env','COLORS_PAR_LIGHTDASH_S3_PASSWORD') }}
           POSTGRES_USER=lightdash
           POSTGRES_DB=lightdash
           POSTGRES_PASSWORD={{ lookup('env','COLORS_PAR_LIGHTDASH_POSTGRES_PASSWORD') }}

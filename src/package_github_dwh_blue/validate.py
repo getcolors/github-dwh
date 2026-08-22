@@ -19,7 +19,7 @@ REQUIRED = {
     "ssh-private-key": str,
 }
 
-CREATE_SECRETS = ("vultr-api-key", "cloudflare-api-token", "clickhouse-password", "pocketbase-superuser-password", "github-token", "lightdash-admin-password", "lightdash-secret", "lightdash-postgres-password", "lightdash-clickhouse-password")
+CREATE_SECRETS = ("vultr-api-key", "cloudflare-api-token", "clickhouse-password", "pocketbase-superuser-password", "github-token", "lightdash-admin-password", "lightdash-secret", "lightdash-postgres-password", "lightdash-clickhouse-password", "lightdash-s3-password")
 RUN_SECRETS = ("github-token", "clickhouse-password", "lightdash-admin-password")
 
 

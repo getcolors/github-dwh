@@ -2,7 +2,7 @@
 
 ## Control-plane and warehouse data
 
-The Vultr instance has daily provider backups enabled. ClickHouse data is under `/var/lib/github-dwh/clickhouse`, PocketBase state under `/var/lib/github-dwh/pocketbase`, Lightdash metadata PostgreSQL under `/var/lib/github-dwh/lightdash-postgres`, and dlt incremental state under `/var/lib/github-dwh/dlt`.
+The Vultr instance has daily provider backups enabled. ClickHouse data is under `/var/lib/github-dwh/clickhouse`, PocketBase state under `/var/lib/github-dwh/pocketbase`, Lightdash metadata PostgreSQL under `/var/lib/github-dwh/lightdash-postgres`, Lightdash object storage under `/var/lib/github-dwh/lightdash-minio`, and dlt incremental state under `/var/lib/github-dwh/dlt`.
 
 For whole-host recovery, restore the latest Vultr backup as a replacement instance, verify the attached firewall and `github-dwh.bigconfig.space` A record, then run the Package Skill `create` event to reconverge software and systemd units. Do not run `delete` as a recovery operation.
 
@@ -16,7 +16,7 @@ GitHub organization events are a recent, bounded feed and cannot be reconstructe
 
 The shared admin email is non-secret desired state. Passwords remain only in the deployment's `.envrc.private` and `/etc/github-dwh/environment` on the host. To rotate the PocketBase password, update its local private value and run `create`; Ansible upserts the PocketBase superuser and rewrites the protected environment file.
 
-Lightdash encryption depends on a stable `COLORS_PAR_LIGHTDASH_SECRET`; restore it together with the PostgreSQL data or stored warehouse credentials cannot be decrypted. Restore `COLORS_PAR_LIGHTDASH_ADMIN_PASSWORD`, `COLORS_PAR_LIGHTDASH_POSTGRES_PASSWORD`, and `COLORS_PAR_LIGHTDASH_CLICKHOUSE_PASSWORD` before running `create`. The bootstrap converges the read-only ClickHouse user, semantic project, and dashboard. Changing the Lightdash admin password in desired state does not rotate an existing Lightdash account; rotate that password in Lightdash first, then update the private environment.
+Lightdash encryption depends on a stable `COLORS_PAR_LIGHTDASH_SECRET`; restore it together with the PostgreSQL data or stored warehouse credentials cannot be decrypted. Restore `COLORS_PAR_LIGHTDASH_ADMIN_PASSWORD`, `COLORS_PAR_LIGHTDASH_POSTGRES_PASSWORD`, `COLORS_PAR_LIGHTDASH_CLICKHOUSE_PASSWORD`, and `COLORS_PAR_LIGHTDASH_S3_PASSWORD` before running `create`. The bootstrap converges the read-only ClickHouse user, semantic project, and dashboard. Changing the Lightdash admin password in desired state does not rotate an existing Lightdash account; rotate that password in Lightdash first, then update the private environment.
 
 ## Diagnostics
 
