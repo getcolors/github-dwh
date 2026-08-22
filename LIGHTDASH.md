@@ -175,6 +175,28 @@ A direct host invocation of the bootstrap completed on 2026-08-22, printing
 the converged project UUID (`7924970f-caa5-4ac4-9e24-64a4428b5288`) after
 uploading the space, charts, and dashboard.
 
+One further host-side defect surfaced during run verification (10): pip judges
+pinned git requirements by name and version alone, so the on-host venv had
+stayed at the first-installed package revision and every pin bump since was
+silently ignored — run events were executing pre-Lightdash workflow code and
+"succeeding" without the sync step. The create play now force-reinstalls the
+two pinned packages (`--force-reinstall --no-deps`) before the plain install
+that resolves any newly added dependencies.
+
+## Verification (2026-08-22)
+
+- `./blue create` converges completely, including the Lightdash bootstrap
+  task under Ansible.
+- The bootstrap is idempotent across reruns.
+- A manual PocketBase run (`42llmlv8oky71im`) executed the full chain —
+  `start → dlt → dbt-run → dbt-test → lightdash` — and succeeded end to end;
+  the Lightdash step took ~14 s and resynchronized the project content.
+- The `github-getcolors` pipeline was registered on both manual runs; the
+  earlier "pipeline is not registered" message did not reproduce.
+
+Remaining manual check: open the dashboard in a browser and confirm the
+charts render real ClickHouse values.
+
 ## R2 migration (2026-08-22, desired state only — not yet deployed)
 
 The package now uses Cloudflare R2 twice, and neither use has been converged
