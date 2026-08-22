@@ -1,15 +1,1 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.11"
-# dependencies = ["package-github-dwh-blue", "blue"]
-#
-# [tool.uv.sources]
-# package-github-dwh-blue = { path = ".", editable = true }
-# blue = { path = "../blue", editable = true }
-# ///
-"""Development launcher; scripts/pin.py stamps the shipped git launcher."""
-from package_github_dwh_blue import exec, run
-
-__all__ = ["run"]
-if __name__ == "__main__":
-    exec()
+skills/package-github-dwh-blue/blue

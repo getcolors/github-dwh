@@ -1,0 +1,14 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["package-github-dwh-blue", "blue"]
+#
+# [tool.uv.sources]
+# package-github-dwh-blue = { git = "https://github.com/getcolors/github-dwh.git", rev = "8a2d759930f16d74315c404e611cd0d1375a0e5f" }
+# blue = { git = "https://github.com/getcolors/blue.git", rev = "369c5aafea790a03b649b3513003651e672f3f57" }
+# ///
+import os
+os.environ.setdefault("GITHUB_DWH_PACKAGE_REVISION", "8a2d759930f16d74315c404e611cd0d1375a0e5f")
+from package_github_dwh_blue import exec, run
+__all__ = ["run"]
+if __name__ == "__main__": exec()
