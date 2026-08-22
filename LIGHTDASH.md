@@ -194,8 +194,8 @@ that resolves any newly added dependencies.
 - The `github-getcolors` pipeline was registered on both manual runs; the
   earlier "pipeline is not registered" message did not reproduce.
 
-Remaining manual check: open the dashboard in a browser and confirm the
-charts render real ClickHouse values.
+The operator confirmed in a browser on 2026-08-22 that the repository
+overview dashboard renders real ClickHouse values. The feature is complete.
 
 ## R2 migration (2026-08-22, desired state only — not yet deployed)
 
