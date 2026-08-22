@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import subprocess
+import tomllib
 
 root = Path(__file__).resolve().parents[1]
 revision = subprocess.check_output(["git", "-C", root, "rev-parse", "HEAD"], text=True).strip()
-blue_revision = subprocess.check_output(["git", "-C", root.parent / "blue", "rev-parse", "HEAD"], text=True).strip()
+with (root / "pyproject.toml").open("rb") as handle:
+    blue_revision = tomllib.load(handle)["tool"]["uv"]["sources"]["blue"]["rev"]
 launcher = f'''#!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.11"
