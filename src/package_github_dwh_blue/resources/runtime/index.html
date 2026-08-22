@@ -203,7 +203,7 @@ tbody tr:hover { background: #f1f6f5; }
     <section class="login-side" aria-labelledby="signin-heading">
       <form class="login-panel" id="login-form">
         <div class="panel-index"><span>Operator access</span><span>AMS / 01</span></div>
-        <h2 id="signin-heading">Open the ledger</h2>
+        <h2 id="signin-heading">Operator sign in</h2>
         <p class="login-note">Use the PocketBase superuser assigned to this deployment.</p>
         <div class="field"><label for="email">Superuser email</label><input id="email" name="email" type="email" autocomplete="username" required placeholder="operator@example.com"></div>
         <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Enter your password"></div>
@@ -221,14 +221,14 @@ tbody tr:hover { background: #f1f6f5; }
     </div>
     <div class="dashboard">
       <header class="dashboard-head">
-        <div><p class="eyebrow">Organization warehouse</p><h1>Workflow ledger</h1><p class="dashboard-intro">Request one complete GitHub load, then follow it from systemd supervision through dlt ingestion and dbt tests.</p></div>
+        <div><p class="eyebrow">Organization warehouse</p><h1>Workflow history</h1><p class="dashboard-intro">Request one complete GitHub load, then follow it from systemd supervision through dlt ingestion and dbt tests.</p></div>
         <button class="primary run-action" id="run-button" type="button">Queue a run</button>
       </header>
       <div class="flow-rule" role="list" aria-label="Workflow stages">
         <div class="flow-step" role="listitem"><b>GitHub</b><span>All accessible repositories</span></div>
         <div class="flow-step" role="listitem"><b>dlt</b><span>Raw merge into ClickHouse</span></div>
         <div class="flow-step" role="listitem"><b>dbt</b><span>Models and data tests</span></div>
-        <div class="flow-step" role="listitem"><b>Ledger</b><span>One safe result per run</span></div>
+        <div class="flow-step" role="listitem"><b>History</b><span>One result per workflow</span></div>
       </div>
       <section class="metrics" aria-label="Run summary">
         <div class="metric"><span class="metric-label">Latest run</span><strong class="metric-value" id="metric-latest">No runs</strong><span class="metric-detail" id="metric-latest-detail">Queue the first workflow</span></div>
@@ -238,7 +238,7 @@ tbody tr:hover { background: #f1f6f5; }
       </section>
       <section class="runs-section" aria-labelledby="runs-heading">
         <div class="section-head"><h2 id="runs-heading">Recent runs</h2><div class="legend" aria-hidden="true"><span><i class="l-success"></i>Succeeded</span><span><i class="l-running"></i>In motion</span><span><i class="l-failed"></i>Failed</span></div></div>
-        <div class="table-wrap"><table><thead><tr><th>Requested</th><th>Run</th><th>Trigger</th><th>Status</th><th>Exit</th><th>systemd unit</th><th>Action</th></tr></thead><tbody id="runs-body"></tbody></table><div id="empty-runs" class="empty" hidden>No workflow runs yet. Queue one to begin the ledger.</div></div>
+        <div class="table-wrap"><table><thead><tr><th>Requested</th><th>Run</th><th>Trigger</th><th>Status</th><th>Exit</th><th>systemd unit</th><th>Action</th></tr></thead><tbody id="runs-body"></tbody></table><div id="empty-runs" class="empty" hidden>No workflow runs yet. Queue one to start the history.</div></div>
         <p id="app-error" class="app-error" role="alert" aria-live="polite"></p>
       </section>
     </div>
