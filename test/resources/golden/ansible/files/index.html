@@ -1,1 +1,364 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>getcolors · GitHub DWH</title><style>:root{font-family:Inter,system-ui;color:#172033;background:#f4f7fb}*{box-sizing:border-box}body{margin:0}header{padding:50px 6vw;background:#132855;color:white}main{max-width:1100px;margin:35px auto;padding:0 22px}.card{background:white;border:1px solid #dce3ee;border-radius:14px;padding:20px;margin:15px 0}input,button{font:inherit;padding:10px 12px;border:1px solid #ccd5e3;border-radius:8px}button{background:#2855d9;color:white;font-weight:700;cursor:pointer}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #e6ebf2}.muted{color:#667085}.ok{color:#16845b}.bad{color:#ba3648}</style></head><body><header><h1>getcolors GitHub warehouse</h1><p>One PocketBase run is one systemd-supervised Blue workflow.</p></header><main><div id="login" class="card"><h2>Sign in</h2><input id="email" type="email" placeholder="Superuser email"><input id="password" type="password" placeholder="Password"><button onclick="login()">Sign in</button><p id="error" class="bad"></p></div><div id="app" hidden><div class="card"><button onclick="runNow()">Run now</button> <span class="muted">Loads all accessible getcolors repositories into ClickHouse, then runs dbt.</span></div><div class="card"><h2>Runs</h2><table><thead><tr><th>Created</th><th>Trigger</th><th>Status</th><th>Exit</th><th>Unit</th><th></th></tr></thead><tbody id="runs"></tbody></table></div></div></main><script>let token=localStorage.pbToken||'';const api=async(path,options={})=>{options.headers={...(options.headers||{}),Authorization:token,'Content-Type':'application/json'};let r=await fetch('/api/'+path,options);if(!r.ok)throw new Error(await r.text());return r.json()};async function login(){try{let r=await api('collections/_superusers/auth-with-password',{method:'POST',body:JSON.stringify({identity:email.value,password:password.value})});token=r.token;localStorage.pbToken=token;show()}catch(e){error.textContent='Authentication failed'}}async function show(){login.hidden=true;app.hidden=false;await refresh();setInterval(refresh,10000)}async function pipeline(){let r=await api('collections/pipelines/records?filter='+encodeURIComponent('name="github-getcolors"'));return r.items[0]}async function runNow(){let p=await pipeline();await api('collections/runs/records',{method:'POST',body:JSON.stringify({pipeline:p.id,event:'run',trigger:'manual',status:'queued',scheduled_for:new Date().toISOString(),idempotency_key:'manual:'+crypto.randomUUID()})});refresh()}async function cancel(id){await api('collections/runs/records/'+id,{method:'PATCH',body:JSON.stringify({cancellation_requested:true})});refresh()}async function refresh(){let r=await api('collections/runs/records?perPage=50');r.items.sort((a,b)=>(b.scheduled_for||'').localeCompare(a.scheduled_for||''));runs.innerHTML=r.items.map(x=>`<tr><td>${x.scheduled_for||''}</td><td>${x.trigger}</td><td class="${x.status==='succeeded'?'ok':x.status==='failed'?'bad':''}">${x.status}</td><td>${x.exit??''}</td><td>${x.systemd_unit||''}</td><td>${x.status==='running'?`<button onclick="cancel('${x.id}')">Cancel</button>`:''}</td></tr>`).join('')}if(token)show()</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#dce7e9">
+<title>getcolors · GitHub DWH</title>
+<style>
+:root {
+  --concrete: #dce7e9;
+  --concrete-deep: #c8d7da;
+  --paper: #f7faf9;
+  --ink: #142d32;
+  --ink-soft: #486268;
+  --steel: #789095;
+  --rule: #aebfc2;
+  --signal: #ee5b32;
+  --signal-dark: #b73d20;
+  --success: #187454;
+  --warning: #9a641c;
+  --failure: #a93636;
+  --blue: #315f70;
+  --shadow: 0 24px 70px rgba(27, 57, 64, .12);
+  --display: "Trebuchet MS", "Avenir Next Condensed", sans-serif;
+  --body: "Avenir Next", "Segoe UI", sans-serif;
+  --utility: "IBM Plex Mono", "DejaVu Sans Mono", monospace;
+}
+* { box-sizing: border-box; }
+html { min-height: 100%; background: var(--concrete); }
+body { min-height: 100vh; margin: 0; color: var(--ink); background: var(--concrete); font: 15px/1.55 var(--body); }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 3px solid rgba(238, 91, 50, .35); outline-offset: 3px; }
+[hidden] { display: none !important; }
+.shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+.masthead { min-height: 66px; padding: 0 clamp(20px, 4vw, 58px); display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid rgba(20, 45, 50, .22); }
+.wordmark { display: flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; font: 800 16px/1 var(--display); letter-spacing: -.02em; }
+.wordmark-mark { width: 25px; height: 25px; position: relative; display: inline-grid; place-items: center; border: 2px solid var(--ink); border-radius: 50%; }
+.wordmark-mark::before, .wordmark-mark::after { content: ""; position: absolute; border-radius: 50%; background: var(--signal); }
+.wordmark-mark::before { width: 6px; height: 6px; left: 3px; top: 7px; }
+.wordmark-mark::after { width: 6px; height: 6px; right: 3px; bottom: 4px; }
+.private-label { font: 700 10px/1 var(--utility); letter-spacing: .13em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; color: var(--ink-soft); }
+.private-label::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px rgba(24, 116, 84, .12); }
+
+/* Login — a warehouse manifest rather than a generic centered auth card. */
+.login-stage { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(340px, .7fr); min-height: calc(100vh - 67px); }
+.manifest { position: relative; overflow: hidden; padding: clamp(50px, 8vw, 110px) clamp(24px, 7vw, 100px); border-right: 1px solid rgba(20, 45, 50, .22); }
+.manifest::after { content: ""; position: absolute; inset: auto -160px -260px auto; width: 560px; height: 560px; border: 1px solid rgba(20, 45, 50, .16); border-radius: 50%; box-shadow: 0 0 0 42px rgba(20,45,50,.025), 0 0 0 84px rgba(20,45,50,.02); }
+.eyebrow { margin: 0 0 22px; color: var(--blue); font: 750 11px/1 var(--utility); letter-spacing: .14em; text-transform: uppercase; }
+h1 { max-width: 760px; margin: 0; font: 800 clamp(46px, 7vw, 96px)/.9 var(--display); letter-spacing: -.065em; }
+.hero-copy { max-width: 610px; margin: 30px 0 0; color: var(--ink-soft); font-size: clamp(17px, 2vw, 21px); line-height: 1.55; }
+.conveyor { position: relative; z-index: 1; max-width: 800px; margin-top: clamp(58px, 10vh, 110px); display: grid; grid-template-columns: 1fr auto 1fr auto 1.15fr; align-items: center; }
+.station { min-height: 98px; padding: 14px 14px 12px; border: 1px solid rgba(20,45,50,.35); background: rgba(247,250,249,.28); }
+.station strong { display: block; margin-top: 16px; font: 750 15px/1.15 var(--display); }
+.station small { display: block; margin-top: 7px; color: var(--ink-soft); font: 10px/1.3 var(--utility); text-transform: uppercase; letter-spacing: .06em; }
+.station-symbol { color: var(--signal-dark); font: 750 11px/1 var(--utility); letter-spacing: .08em; }
+.belt { position: relative; width: clamp(28px, 4vw, 64px); height: 1px; background: var(--steel); }
+.belt::after { content: ""; position: absolute; top: -4px; left: 0; width: 9px; height: 9px; border-radius: 50%; background: var(--signal); animation: travel 3.4s cubic-bezier(.65,0,.35,1) infinite; }
+@keyframes travel { 0% { transform: translateX(-2px); opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { transform: translateX(calc(clamp(28px, 4vw, 64px) - 7px)); opacity: 0; } }
+.login-side { display: grid; align-items: center; padding: clamp(32px, 6vw, 86px); background: var(--paper); }
+.login-panel { width: 100%; max-width: 440px; margin: auto; }
+.panel-index { margin-bottom: 34px; padding-bottom: 13px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; color: var(--ink-soft); font: 10px/1 var(--utility); text-transform: uppercase; letter-spacing: .1em; }
+h2 { margin: 0; font: 800 clamp(32px, 4vw, 48px)/1 var(--display); letter-spacing: -.045em; }
+.login-note { margin: 15px 0 30px; color: var(--ink-soft); }
+.field { margin-top: 20px; }
+.field label { display: block; margin-bottom: 8px; color: var(--ink-soft); font: 700 10px/1 var(--utility); text-transform: uppercase; letter-spacing: .1em; }
+.field input { width: 100%; min-height: 52px; padding: 13px 15px; border: 1px solid var(--rule); border-radius: 2px; color: var(--ink); background: white; transition: border-color .16s, box-shadow .16s; }
+.field input:hover { border-color: var(--steel); }
+.field input:focus { border-color: var(--signal); box-shadow: inset 3px 0 0 var(--signal); outline: none; }
+.primary { min-height: 50px; padding: 0 20px; border: 1px solid #842b17; border-radius: 2px; color: white; background: var(--signal-dark); box-shadow: 4px 4px 0 var(--ink); font-weight: 800; transition: transform .15s, box-shadow .15s, background .15s; }
+.primary:hover { background: #9f3119; transform: translate(-1px,-1px); box-shadow: 6px 6px 0 var(--ink); }
+.primary:active { transform: translate(3px,3px); box-shadow: 1px 1px 0 var(--ink); }
+.primary:disabled { cursor: wait; opacity: .62; transform: none; box-shadow: 2px 2px 0 var(--ink); }
+.login-submit { width: 100%; margin-top: 28px; }
+.form-error { min-height: 24px; margin: 18px 0 0; color: var(--failure); font-size: 13px; }
+.security-note { margin-top: 34px; padding-top: 18px; border-top: 1px solid var(--rule); color: var(--ink-soft); font: 11px/1.55 var(--utility); }
+
+/* Authenticated control plane. */
+.app { min-height: calc(100vh - 67px); }
+.appbar { padding: 17px clamp(20px, 4vw, 58px); display: flex; justify-content: space-between; align-items: center; gap: 20px; border-bottom: 1px solid rgba(20,45,50,.2); }
+.appbar-actions { display: flex; align-items: center; gap: 16px; }
+.last-refresh { color: var(--ink-soft); font: 10px/1 var(--utility); text-transform: uppercase; letter-spacing: .07em; }
+.text-button { border: 0; padding: 6px 0; color: var(--ink); background: transparent; border-bottom: 1px solid var(--steel); font-weight: 700; }
+.dashboard { max-width: 1460px; margin: 0 auto; padding: clamp(36px, 6vw, 80px) clamp(20px, 4vw, 58px) 80px; }
+.dashboard-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 30px; }
+.dashboard-head h1 { max-width: 820px; font-size: clamp(48px, 7vw, 88px); }
+.dashboard-intro { max-width: 650px; margin: 22px 0 0; color: var(--ink-soft); font-size: 17px; }
+.run-action { min-width: 180px; }
+.flow-rule { margin: 52px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); border: solid var(--rule); border-width: 1px 0; }
+.flow-step { position: relative; min-height: 80px; padding: 15px 16px 14px 40px; border-right: 1px solid var(--rule); }
+.flow-step:last-child { border-right: 0; }
+.flow-step::before { content: ""; position: absolute; left: 17px; top: 20px; width: 9px; height: 9px; background: var(--signal); border-radius: 50%; }
+.flow-step:not(:last-child)::after { content: "→"; position: absolute; right: -8px; top: 29px; z-index: 1; width: 16px; background: var(--concrete); text-align: center; color: var(--ink-soft); }
+.flow-step b { display: block; font: 750 13px/1.2 var(--display); }
+.flow-step span { display: block; margin-top: 7px; color: var(--ink-soft); font: 9px/1.3 var(--utility); text-transform: uppercase; letter-spacing: .07em; }
+.metrics { display: grid; grid-template-columns: 1.3fr repeat(3, 1fr); margin-top: 30px; border: 1px solid var(--rule); background: rgba(247,250,249,.34); }
+.metric { min-height: 130px; padding: 22px; border-right: 1px solid var(--rule); }
+.metric:last-child { border-right: 0; }
+.metric-label { color: var(--ink-soft); font: 700 10px/1 var(--utility); letter-spacing: .1em; text-transform: uppercase; }
+.metric-value { display: block; margin-top: 24px; font: 800 clamp(27px, 3vw, 42px)/1 var(--display); letter-spacing: -.04em; }
+.metric-detail { display: block; margin-top: 8px; color: var(--ink-soft); font-size: 12px; }
+.runs-section { margin-top: 56px; }
+.section-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 17px; }
+.section-head h2 { font-size: 30px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; color: var(--ink-soft); font: 9px/1 var(--utility); text-transform: uppercase; letter-spacing: .06em; }
+.legend span { display: flex; align-items: center; gap: 5px; }
+.legend i { width: 7px; height: 7px; border-radius: 50%; background: var(--steel); }
+.legend .l-success { background: var(--success); }.legend .l-running { background: var(--signal); }.legend .l-failed { background: var(--failure); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); background: var(--paper); box-shadow: var(--shadow); }
+table { width: 100%; min-width: 840px; border-collapse: collapse; }
+th { padding: 13px 16px; border-bottom: 1px solid var(--rule); color: var(--ink-soft); background: rgba(220,231,233,.45); text-align: left; font: 700 9px/1 var(--utility); text-transform: uppercase; letter-spacing: .1em; }
+td { padding: 17px 16px; border-bottom: 1px solid #dbe4e5; vertical-align: middle; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: #f1f6f5; }
+.run-id { font: 11px/1.3 var(--utility); color: var(--ink-soft); }
+.status { display: inline-flex; align-items: center; gap: 7px; padding: 6px 9px; border: 1px solid currentColor; border-radius: 99px; font: 700 9px/1 var(--utility); text-transform: uppercase; letter-spacing: .07em; }
+.status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.status-succeeded { color: var(--success); }.status-failed, .status-canceled { color: var(--failure); }.status-running, .status-launching { color: var(--signal-dark); }.status-queued { color: var(--blue); }
+.cancel { border: 0; border-bottom: 1px solid var(--failure); color: var(--failure); background: transparent; font-size: 12px; font-weight: 750; }
+.empty { padding: 55px 20px; text-align: center; color: var(--ink-soft); }
+.app-error { margin-top: 16px; color: var(--failure); }
+
+@media (max-width: 940px) {
+  .login-stage { grid-template-columns: 1fr; }
+  .manifest { min-height: auto; border-right: 0; border-bottom: 1px solid rgba(20,45,50,.22); }
+  .login-side { padding-top: 55px; padding-bottom: 70px; }
+  .dashboard-head { grid-template-columns: 1fr; align-items: start; }
+  .run-action { justify-self: start; }
+  .metrics { grid-template-columns: 1fr 1fr; }
+  .metric:nth-child(2) { border-right: 0; }.metric:nth-child(-n+2) { border-bottom: 1px solid var(--rule); }
+}
+@media (max-width: 620px) {
+  .masthead { min-height: 58px; }.private-label { font-size: 8px; }
+  .manifest { padding-top: 44px; padding-bottom: 52px; }
+  h1 { font-size: 48px; }.hero-copy { font-size: 16px; }
+  .conveyor { margin-top: 42px; grid-template-columns: 1fr; gap: 0; }
+  .belt { width: 1px; height: 28px; margin-left: 28px; }.belt::after { left: -4px; top: 0; animation: travelY 3.4s ease-in-out infinite; }
+  @keyframes travelY { from { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(22px); opacity: 0; } }
+  .station { min-height: 82px; }.station strong { margin-top: 10px; }
+  .login-side { padding: 44px 22px 65px; }
+  .appbar { align-items: flex-start; }.last-refresh { display: none; }
+  .dashboard { padding-top: 42px; }.dashboard-head h1 { font-size: 50px; }
+  .flow-rule { grid-template-columns: 1fr 1fr; }.flow-step:nth-child(2) { border-right: 0; }.flow-step:nth-child(-n+2) { border-bottom: 1px solid var(--rule); }
+  .flow-step::after { display: none; }
+  .metrics { grid-template-columns: 1fr; }.metric { border-right: 0; border-bottom: 1px solid var(--rule) !important; }.metric:last-child { border-bottom: 0 !important; }
+  .section-head { align-items: flex-start; flex-direction: column; }.legend { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="masthead">
+    <a class="wordmark" href="/" aria-label="getcolors GitHub DWH home"><span class="wordmark-mark" aria-hidden="true"></span><span>getcolors / DWH</span></a>
+    <span class="private-label">Private control plane</span>
+  </header>
+
+  <main id="login" class="login-stage">
+    <section class="manifest" aria-labelledby="login-title">
+      <p class="eyebrow">GitHub organization warehouse · getcolors</p>
+      <h1 id="login-title">Every repository,<br>accounted for.</h1>
+      <p class="hero-copy">One supervised route from GitHub activity to tested analytical models. The control plane schedules complete runs; Blue decides every step inside them.</p>
+      <div class="conveyor" role="img" aria-label="Data route: GitHub to ClickHouse through dlt and dbt">
+        <div class="station"><span class="station-symbol">GH / ALL</span><strong>Repositories</strong><small>Commits · Actions · Skills</small></div>
+        <div class="belt" aria-hidden="true"></div>
+        <div class="station"><span class="station-symbol">DLT / RAW</span><strong>Ingest</strong><small>Merge on stable identity</small></div>
+        <div class="belt" aria-hidden="true"></div>
+        <div class="station"><span class="station-symbol">CH / DBT</span><strong>ClickHouse</strong><small>Transform · Test · Report</small></div>
+      </div>
+    </section>
+    <section class="login-side" aria-labelledby="signin-heading">
+      <form class="login-panel" id="login-form">
+        <div class="panel-index"><span>Operator access</span><span>AMS / 01</span></div>
+        <h2 id="signin-heading">Open the ledger</h2>
+        <p class="login-note">Use the PocketBase superuser assigned to this deployment.</p>
+        <div class="field"><label for="email">Superuser email</label><input id="email" name="email" type="email" autocomplete="username" required placeholder="operator@example.com"></div>
+        <div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Enter your password"></div>
+        <button class="primary login-submit" id="login-button" type="submit">Open control plane</button>
+        <p id="login-error" class="form-error" role="alert" aria-live="polite"></p>
+        <p class="security-note">Credentials remain in PocketBase. Full workflow output remains in journald, indexed by the unit shown on each run.</p>
+      </form>
+    </section>
+  </main>
+
+  <main id="app" class="app" hidden>
+    <div class="appbar">
+      <div><span class="eyebrow" style="margin:0">github-getcolors / production</span></div>
+      <div class="appbar-actions"><span id="last-refresh" class="last-refresh">Not refreshed</span><button class="text-button" id="signout-button" type="button">Sign out</button></div>
+    </div>
+    <div class="dashboard">
+      <header class="dashboard-head">
+        <div><p class="eyebrow">Organization warehouse</p><h1>Workflow ledger</h1><p class="dashboard-intro">Request one complete GitHub load, then follow it from systemd supervision through dlt ingestion and dbt tests.</p></div>
+        <button class="primary run-action" id="run-button" type="button">Queue a run</button>
+      </header>
+      <div class="flow-rule" role="list" aria-label="Workflow stages">
+        <div class="flow-step" role="listitem"><b>GitHub</b><span>All accessible repositories</span></div>
+        <div class="flow-step" role="listitem"><b>dlt</b><span>Raw merge into ClickHouse</span></div>
+        <div class="flow-step" role="listitem"><b>dbt</b><span>Models and data tests</span></div>
+        <div class="flow-step" role="listitem"><b>Ledger</b><span>One safe result per run</span></div>
+      </div>
+      <section class="metrics" aria-label="Run summary">
+        <div class="metric"><span class="metric-label">Latest run</span><strong class="metric-value" id="metric-latest">No runs</strong><span class="metric-detail" id="metric-latest-detail">Queue the first workflow</span></div>
+        <div class="metric"><span class="metric-label">Successful</span><strong class="metric-value" id="metric-success">0</strong><span class="metric-detail">completed workflows</span></div>
+        <div class="metric"><span class="metric-label">Reliability</span><strong class="metric-value" id="metric-reliability">—</strong><span class="metric-detail">finished runs</span></div>
+        <div class="metric"><span class="metric-label">Schedule</span><strong class="metric-value" id="metric-schedule">—</strong><span class="metric-detail">whole-workflow cadence</span></div>
+      </section>
+      <section class="runs-section" aria-labelledby="runs-heading">
+        <div class="section-head"><h2 id="runs-heading">Recent runs</h2><div class="legend" aria-hidden="true"><span><i class="l-success"></i>Succeeded</span><span><i class="l-running"></i>In motion</span><span><i class="l-failed"></i>Failed</span></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Requested</th><th>Run</th><th>Trigger</th><th>Status</th><th>Exit</th><th>systemd unit</th><th>Action</th></tr></thead><tbody id="runs-body"></tbody></table><div id="empty-runs" class="empty" hidden>No workflow runs yet. Queue one to begin the ledger.</div></div>
+        <p id="app-error" class="app-error" role="alert" aria-live="polite"></p>
+      </section>
+    </div>
+  </main>
+</div>
+<script>
+let token = localStorage.getItem('githubDwhToken') || '';
+let refreshTimer = null;
+let pipelineRecord = null;
+const byId = id => document.getElementById(id);
+
+async function api(path, options = {}) {
+  const headers = {...(options.headers || {}), 'Content-Type': 'application/json'};
+  if (token) headers.Authorization = token;
+  const response = await fetch('/api/' + path, {...options, headers});
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    const error = new Error(body.message || `Request failed (${response.status})`);
+    error.status = response.status;
+    throw error;
+  }
+  return response.json();
+}
+
+function prettyDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.valueOf()) ? '—' : new Intl.DateTimeFormat(undefined, {dateStyle:'medium', timeStyle:'short'}).format(date);
+}
+function relativeDate(value) {
+  if (!value) return 'No timestamp';
+  const seconds = Math.round((new Date(value).valueOf() - Date.now()) / 1000);
+  const scale = Math.abs(seconds) < 90 ? ['second', seconds] : Math.abs(seconds) < 5400 ? ['minute', Math.round(seconds/60)] : Math.abs(seconds) < 129600 ? ['hour', Math.round(seconds/3600)] : ['day', Math.round(seconds/86400)];
+  return new Intl.RelativeTimeFormat(undefined, {numeric:'auto'}).format(scale[1], scale[0]);
+}
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+}
+
+async function authenticate(event) {
+  event.preventDefault();
+  const button = byId('login-button');
+  byId('login-error').textContent = '';
+  button.disabled = true;
+  button.textContent = 'Opening…';
+  try {
+    const result = await api('collections/_superusers/auth-with-password', {method:'POST', body:JSON.stringify({identity:byId('email').value, password:byId('password').value})});
+    token = result.token;
+    localStorage.setItem('githubDwhToken', token);
+    byId('password').value = '';
+    await openApp();
+  } catch (error) {
+    byId('login-error').textContent = error.status === 400 ? 'The email or password does not match this deployment.' : 'PocketBase could not complete sign-in. Check service health and try again.';
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Open control plane';
+  }
+}
+
+async function getPipeline() {
+  if (pipelineRecord) return pipelineRecord;
+  const result = await api('collections/pipelines/records?filter=' + encodeURIComponent('name="github-getcolors"'));
+  if (!result.items.length) throw new Error('The github-getcolors pipeline is not registered.');
+  pipelineRecord = result.items[0];
+  return pipelineRecord;
+}
+
+async function queueRun() {
+  const button = byId('run-button');
+  button.disabled = true;
+  button.textContent = 'Queueing…';
+  byId('app-error').textContent = '';
+  try {
+    const pipeline = await getPipeline();
+    await api('collections/runs/records', {method:'POST', body:JSON.stringify({pipeline:pipeline.id,event:'run',trigger:'manual',status:'queued',scheduled_for:new Date().toISOString(),idempotency_key:'manual:'+crypto.randomUUID()})});
+    button.textContent = 'Run queued';
+    await refresh();
+  } catch (error) {
+    byId('app-error').textContent = 'The run was not queued. ' + error.message;
+    button.textContent = 'Queue a run';
+  } finally {
+    setTimeout(() => { button.disabled = false; button.textContent = 'Queue a run'; }, 900);
+  }
+}
+
+async function requestCancel(id) {
+  byId('app-error').textContent = '';
+  try {
+    await api('collections/runs/records/' + encodeURIComponent(id), {method:'PATCH', body:JSON.stringify({cancellation_requested:true})});
+    await refresh();
+  } catch (error) {
+    byId('app-error').textContent = 'Cancellation was not requested. ' + error.message;
+  }
+}
+
+function renderRuns(items, interval) {
+  const sorted = [...items].sort((a,b) => String(b.scheduled_for || b.started || '').localeCompare(String(a.scheduled_for || a.started || '')));
+  const body = byId('runs-body');
+  byId('empty-runs').hidden = sorted.length > 0;
+  body.innerHTML = sorted.slice(0, 50).map(run => {
+    const active = ['running','launching'].includes(run.status);
+    return `<tr><td>${escapeHtml(prettyDate(run.scheduled_for || run.started))}</td><td><span class="run-id">${escapeHtml(run.id)}</span></td><td>${escapeHtml(run.trigger || '—')}</td><td><span class="status status-${escapeHtml(run.status)}">${escapeHtml(run.status)}</span></td><td>${run.finished ? escapeHtml(run.exit) : '—'}</td><td><span class="run-id">${escapeHtml(run.systemd_unit || 'awaiting unit')}</span></td><td>${active ? `<button class="cancel" type="button" data-cancel="${escapeHtml(run.id)}">Request cancel</button>` : '—'}</td></tr>`;
+  }).join('');
+  body.querySelectorAll('[data-cancel]').forEach(button => button.addEventListener('click', () => requestCancel(button.dataset.cancel)));
+
+  const latest = sorted[0];
+  const finished = sorted.filter(run => ['succeeded','failed','canceled'].includes(run.status));
+  const successful = finished.filter(run => run.status === 'succeeded').length;
+  byId('metric-latest').textContent = latest ? latest.status : 'No runs';
+  byId('metric-latest-detail').textContent = latest ? `${relativeDate(latest.scheduled_for || latest.started)} · ${latest.trigger}` : 'Queue the first workflow';
+  byId('metric-success').textContent = String(successful);
+  byId('metric-reliability').textContent = finished.length ? Math.round(successful / finished.length * 100) + '%' : '—';
+  byId('metric-schedule').textContent = interval ? `${interval} min` : 'Manual';
+}
+
+async function refresh() {
+  try {
+    const [runs, schedules] = await Promise.all([api('collections/runs/records?perPage=200'), api('collections/schedules/records?perPage=20')]);
+    const enabled = schedules.items.find(item => item.enabled);
+    renderRuns(runs.items, enabled && enabled.interval_minutes);
+    byId('last-refresh').textContent = 'Updated ' + new Intl.DateTimeFormat(undefined, {hour:'numeric',minute:'2-digit',second:'2-digit'}).format(new Date());
+    byId('app-error').textContent = '';
+  } catch (error) {
+    if (error.status === 401 || error.status === 403) return signOut('Your PocketBase session has expired. Sign in again.');
+    byId('app-error').textContent = 'Run history could not be refreshed. ' + error.message;
+  }
+}
+
+async function openApp() {
+  byId('login').hidden = true;
+  byId('app').hidden = false;
+  await refresh();
+  clearInterval(refreshTimer);
+  refreshTimer = setInterval(refresh, 10000);
+}
+function signOut(message = '') {
+  clearInterval(refreshTimer);
+  refreshTimer = null;
+  token = '';
+  pipelineRecord = null;
+  localStorage.removeItem('githubDwhToken');
+  byId('app').hidden = true;
+  byId('login').hidden = false;
+  byId('login-error').textContent = message;
+}
+
+byId('login-form').addEventListener('submit', authenticate);
+byId('run-button').addEventListener('click', queueRun);
+byId('signout-button').addEventListener('click', () => signOut());
+if (token) openApp();
+</script>
+</body>
+</html>
