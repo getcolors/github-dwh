@@ -121,6 +121,11 @@
         chdir: /opt/github-dwh
       register: compose
       changed_when: "'Started' in compose.stdout or 'Created' in compose.stdout or 'Building' in compose.stdout"
+    - name: Reload Caddy configuration
+      ansible.builtin.command: docker compose restart caddy
+      args:
+        chdir: /opt/github-dwh
+      changed_when: false
     - name: Wait for PocketBase
       ansible.builtin.uri:
         url: http://127.0.0.1:8090/api/health
@@ -157,7 +162,7 @@
     - name: Converge Lightdash project and dashboard
       ansible.builtin.command: /opt/github-dwh/.venv/bin/python /opt/github-dwh/lightdash_bootstrap.py
       environment:
-        LIGHTDASH_URL: http://127.0.0.1:8080
+        LIGHTDASH_URL: https://analytics.github-dwh.example.com
         CLICKHOUSE_URL: http://127.0.0.1:8123
       no_log: true
       changed_when: false

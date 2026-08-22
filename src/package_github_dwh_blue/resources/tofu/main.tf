@@ -77,7 +77,8 @@ resource "cloudflare_dns_record" "analytics" {
   content = vultr_instance.github_dwh.main_ip
   type    = "A"
   ttl     = 1
-  proxied = true
+  # Cloudflare Universal SSL does not cover this two-label subdomain.
+  proxied = false
 }
 
 output "infra" {
