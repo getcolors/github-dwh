@@ -47,7 +47,7 @@ for run in records("runs", filter='status="running" && cancellation_requested=tr
     patch("runs", run["id"], {"status": "canceled", "finished": NOW.isoformat(), "exit": 143})
 
 active = {row["pipeline"] for row in records("runs", filter='status="launching" || status="running"')}
-for run in records("runs", filter='status="queued"', sort="created"):
+for run in sorted(records("runs", filter='status="queued"'), key=lambda row: row["created"]):
     if run["pipeline"] in active:
         continue
     unit = f"github-dwh-run-{run['id']}.service"
