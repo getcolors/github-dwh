@@ -119,6 +119,35 @@ tbody tr:hover { background: #f1f6f5; }
 .cancel { border: 0; border-bottom: 1px solid var(--failure); color: var(--failure); background: transparent; font-size: 12px; font-weight: 750; }
 .empty { padding: 55px 20px; text-align: center; color: var(--ink-soft); }
 .app-error { margin-top: 16px; color: var(--failure); }
+.action-stack { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+.log-link { border: 0; padding: 0; color: var(--blue); background: transparent; border-bottom: 1px solid currentColor; font-size: 12px; font-weight: 750; }
+.log-backdrop { position: fixed; inset: 0; z-index: 20; background: rgba(20,45,50,.46); backdrop-filter: blur(3px); }
+.log-viewer { position: fixed; inset: 0 0 0 auto; z-index: 21; width: min(880px, 94vw); display: grid; grid-template-rows: auto auto 1fr auto; color: #dce7e9; background: #10262b; box-shadow: -30px 0 90px rgba(5,17,20,.35); }
+.log-head { padding: 22px 26px 19px; display: flex; align-items: flex-start; justify-content: space-between; gap: 25px; border-bottom: 1px solid #385158; }
+.log-kicker { color: #83a1a8; font: 700 9px/1 var(--utility); text-transform: uppercase; letter-spacing: .12em; }
+.log-title { margin: 8px 0 0; color: #f7faf9; font: 800 28px/1 var(--display); letter-spacing: -.035em; }
+.log-close { width: 38px; height: 38px; border: 1px solid #789095; color: #f7faf9; background: transparent; font-size: 22px; line-height: 1; }
+.log-controls { padding: 15px 26px; display: grid; grid-template-columns: minmax(150px,1fr) minmax(170px,1.4fr) 130px auto; align-items: end; gap: 12px; border-bottom: 1px solid #385158; background: #163138; }
+.log-control label { display: block; margin-bottom: 6px; color: #9eb3b8; font: 700 8px/1 var(--utility); text-transform: uppercase; letter-spacing: .09em; }
+.log-control input, .log-control select { width: 100%; height: 38px; border: 1px solid #587078; border-radius: 1px; padding: 0 10px; color: #f7faf9; background: #10262b; font: 11px/1 var(--utility); }
+.log-toggles { height: 38px; display: flex; align-items: center; gap: 12px; color: #c8d7da; font: 10px/1 var(--utility); }
+.log-toggles label { display: flex; align-items: center; gap: 5px; }
+.log-toggles input { accent-color: var(--signal); }
+.log-output { overflow: auto; padding: 0 0 40px; scroll-behavior: smooth; }
+.log-more { display: block; width: calc(100% - 52px); margin: 18px 26px 8px; padding: 9px; border: 1px solid #587078; color: #c8d7da; background: transparent; font: 700 9px/1 var(--utility); text-transform: uppercase; letter-spacing: .08em; }
+.log-empty { padding: 80px 26px; color: #83a1a8; text-align: center; font: 12px/1.6 var(--utility); }
+.log-line { display: grid; grid-template-columns: 178px 70px minmax(0,1fr); gap: 12px; padding: 7px 26px; border-bottom: 1px solid rgba(120,144,149,.12); font: 11px/1.55 var(--utility); }
+.log-line:hover { background: rgba(220,231,233,.045); }
+.log-time, .log-stream { color: #83a1a8; }
+.log-message { min-width: 0; color: #dce7e9; white-space: pre-wrap; overflow-wrap: anywhere; }
+.log-output.nowrap .log-message { white-space: pre; overflow-wrap: normal; }
+.log-output.nowrap .log-line { grid-template-columns: 178px 70px max-content; min-width: 100%; width: max-content; }
+.log-line[data-priority="error"] .log-message, .log-line[data-priority="critical"] .log-message, .log-line[data-priority="alert"] .log-message, .log-line[data-priority="emergency"] .log-message { color: #ff9d87; }
+.log-line[data-priority="warning"] .log-message { color: #efc27c; }
+.log-foot { min-height: 54px; padding: 10px 26px; display: flex; align-items: center; justify-content: space-between; gap: 18px; border-top: 1px solid #385158; background: #163138; }
+.log-status { color: #9eb3b8; font: 9px/1.4 var(--utility); text-transform: uppercase; letter-spacing: .06em; }
+.log-actions { display: flex; gap: 15px; }
+.log-action { border: 0; padding: 5px 0; color: #dce7e9; background: transparent; border-bottom: 1px solid #789095; font: 700 10px/1 var(--utility); }
 
 @media (max-width: 940px) {
   .login-stage { grid-template-columns: 1fr; }
@@ -144,6 +173,7 @@ tbody tr:hover { background: #f1f6f5; }
   .flow-step::after { display: none; }
   .metrics { grid-template-columns: 1fr; }.metric { border-right: 0; border-bottom: 1px solid var(--rule) !important; }.metric:last-child { border-bottom: 0 !important; }
   .section-head { align-items: flex-start; flex-direction: column; }.legend { display: none; }
+  .log-viewer { width: 100vw; }.log-controls { grid-template-columns: 1fr 1fr; }.log-line { grid-template-columns: 142px minmax(0,1fr); }.log-stream { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
@@ -187,7 +217,7 @@ tbody tr:hover { background: #f1f6f5; }
   <main id="app" class="app" hidden>
     <div class="appbar">
       <div><span class="eyebrow" style="margin:0">github-getcolors / production</span></div>
-      <div class="appbar-actions"><span id="last-refresh" class="last-refresh">Not refreshed</span><button class="text-button" id="signout-button" type="button">Sign out</button></div>
+      <div class="appbar-actions"><span id="last-refresh" class="last-refresh">Not refreshed</span><button class="text-button" id="system-logs-button" type="button">System logs</button><button class="text-button" id="signout-button" type="button">Sign out</button></div>
     </div>
     <div class="dashboard">
       <header class="dashboard-head">
@@ -213,11 +243,32 @@ tbody tr:hover { background: #f1f6f5; }
       </section>
     </div>
   </main>
+
+  <div id="log-backdrop" class="log-backdrop" hidden></div>
+  <section id="log-viewer" class="log-viewer" role="dialog" aria-modal="true" aria-labelledby="log-title" hidden>
+    <header class="log-head"><div><span class="log-kicker">Journald · read only · secrets redacted</span><h2 class="log-title" id="log-title">System logs</h2></div><button class="log-close" id="log-close" type="button" aria-label="Close log viewer">×</button></header>
+    <div class="log-controls">
+      <div class="log-control"><label for="log-source">Source</label><select id="log-source"><option value="dispatcher">Dispatcher</option><option value="caddy">Caddy</option><option value="pocketbase">PocketBase</option><option value="clickhouse">ClickHouse</option><option value="docker">Docker daemon</option></select></div>
+      <div class="log-control"><label for="log-search">Search loaded lines</label><input id="log-search" type="search" placeholder="Filter messages or streams"></div>
+      <div class="log-control"><label for="log-severity">Severity</label><select id="log-severity"><option value="all">All levels</option><option value="problem">Errors only</option><option value="warning">Warnings</option><option value="notice">Notices</option><option value="info">Info</option><option value="debug">Debug</option></select></div>
+      <div class="log-toggles"><label><input id="log-wrap" type="checkbox" checked> Wrap</label><label><input id="log-autoscroll" type="checkbox" checked> Follow</label></div>
+    </div>
+    <div class="log-output" id="log-output" role="log" tabindex="0" aria-label="Log lines"><button class="log-more" id="log-more" type="button" hidden>Fetch older lines</button><div id="log-lines"></div><p class="log-empty" id="log-empty">Choose a source to inspect its journal.</p></div>
+    <footer class="log-foot"><span class="log-status" id="log-status" role="status" aria-live="polite">Waiting</span><div class="log-actions"><button class="log-action" id="log-copy" type="button">Copy visible</button><button class="log-action" id="log-download" type="button">Download loaded</button></div></footer>
+  </section>
 </div>
 <script>
 let token = localStorage.getItem('githubDwhToken') || '';
 let refreshTimer = null;
 let pipelineRecord = null;
+let logLines = [];
+let logBefore = null;
+let logAfter = null;
+let logHasMore = false;
+let logPath = '';
+let logPollTimer = null;
+let logLoading = false;
+let logReturnFocus = null;
 const byId = id => document.getElementById(id);
 
 async function api(path, options = {}) {
@@ -226,7 +277,7 @@ async function api(path, options = {}) {
   const response = await fetch('/api/' + path, {...options, headers});
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    const error = new Error(body.message || `Request failed (${response.status})`);
+    const error = new Error(body.message || body.error || `Request failed (${response.status})`);
     error.status = response.status;
     throw error;
   }
@@ -310,9 +361,13 @@ function renderRuns(items, interval) {
   byId('empty-runs').hidden = sorted.length > 0;
   body.innerHTML = sorted.slice(0, 50).map(run => {
     const active = ['running','launching'].includes(run.status);
-    return `<tr><td>${escapeHtml(prettyDate(run.scheduled_for || run.started))}</td><td><span class="run-id">${escapeHtml(run.id)}</span></td><td>${escapeHtml(run.trigger || '—')}</td><td><span class="status status-${escapeHtml(run.status)}">${escapeHtml(run.status)}</span></td><td>${run.finished ? escapeHtml(run.exit) : '—'}</td><td><span class="run-id">${escapeHtml(run.systemd_unit || 'awaiting unit')}</span></td><td>${active ? `<button class="cancel" type="button" data-cancel="${escapeHtml(run.id)}">Request cancel</button>` : '—'}</td></tr>`;
+    const log = run.systemd_unit ? `<button class="log-link" type="button" data-log-run="${escapeHtml(run.id)}">View log</button>` : '';
+    const cancel = active ? `<button class="cancel" type="button" data-cancel="${escapeHtml(run.id)}">Request cancel</button>` : '';
+    const actions = log || cancel ? `<span class="action-stack">${log}${cancel}</span>` : '—';
+    return `<tr><td>${escapeHtml(prettyDate(run.scheduled_for || run.started))}</td><td><span class="run-id">${escapeHtml(run.id)}</span></td><td>${escapeHtml(run.trigger || '—')}</td><td><span class="status status-${escapeHtml(run.status)}">${escapeHtml(run.status)}</span></td><td>${run.finished ? escapeHtml(run.exit) : '—'}</td><td><span class="run-id">${escapeHtml(run.systemd_unit || 'awaiting unit')}</span></td><td>${actions}</td></tr>`;
   }).join('');
   body.querySelectorAll('[data-cancel]').forEach(button => button.addEventListener('click', () => requestCancel(button.dataset.cancel)));
+  body.querySelectorAll('[data-log-run]').forEach(button => button.addEventListener('click', () => openRunLogs(button.dataset.logRun, button)));
 
   const latest = sorted[0];
   const finished = sorted.filter(run => ['succeeded','failed','canceled'].includes(run.status));
@@ -337,6 +392,125 @@ async function refresh() {
   }
 }
 
+async function logsApi(path) {
+  const response = await fetch('/control/logs/' + path, {headers:{Authorization:token}});
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    if (response.status === 401 || response.status === 403) signOut('Your PocketBase session has expired. Sign in again.');
+    throw new Error(body.error || `Log request failed (${response.status})`);
+  }
+  return body;
+}
+
+function visibleLogLines() {
+  const query = byId('log-search').value.trim().toLocaleLowerCase();
+  const severity = byId('log-severity').value;
+  const problems = new Set(['emergency','alert','critical','error']);
+  return logLines.filter(line => {
+    const levelMatches = severity === 'all' || (severity === 'problem' ? problems.has(line.priority) : line.priority === severity);
+    const textMatches = !query || `${line.message} ${line.stream}`.toLocaleLowerCase().includes(query);
+    return levelMatches && textMatches;
+  });
+}
+
+function renderLogLines(scrollToBottom = false) {
+  const visible = visibleLogLines();
+  byId('log-lines').innerHTML = visible.map(line => `<div class="log-line" data-priority="${escapeHtml(line.priority)}"><time class="log-time" datetime="${escapeHtml(line.timestamp)}">${escapeHtml(new Intl.DateTimeFormat(undefined,{month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',fractionalSecondDigits:3}).format(new Date(line.timestamp)))}</time><span class="log-stream">${escapeHtml(line.stream)}</span><span class="log-message">${escapeHtml(line.message)}</span></div>`).join('');
+  byId('log-empty').hidden = visible.length > 0;
+  byId('log-empty').textContent = logLines.length ? 'No loaded lines match these filters.' : 'No journal entries are available for this source.';
+  byId('log-more').hidden = !logHasMore;
+  byId('log-status').textContent = `${visible.length} visible · ${logLines.length} loaded · polling every 3 seconds`;
+  if (scrollToBottom && byId('log-autoscroll').checked) byId('log-output').scrollTop = byId('log-output').scrollHeight;
+}
+
+async function loadLogs({older=false, poll=false} = {}) {
+  if (logLoading || !logPath) return;
+  logLoading = true;
+  const output = byId('log-output');
+  const previousHeight = output.scrollHeight;
+  if (!poll) byId('log-status').textContent = older ? 'Fetching older entries…' : 'Reading journal…';
+  try {
+    const params = new URLSearchParams({limit:'2000'});
+    if (older && logBefore) params.set('before', String(logBefore));
+    if (poll && logAfter) params.set('after', String(logAfter));
+    const result = await logsApi(logPath + '?' + params);
+    if (!older && !poll) logLines = [];
+    const combined = older ? [...result.lines, ...logLines] : [...logLines, ...result.lines];
+    const unique = new Map(combined.map(line => [`${line.cursor}:${line.message}`, line]));
+    logLines = [...unique.values()].sort((a,b) => a.cursor - b.cursor);
+    logBefore = logLines.length ? logLines[0].cursor : null;
+    logAfter = logLines.length ? logLines[logLines.length - 1].cursor : null;
+    if (!poll) logHasMore = Boolean(result.has_more);
+    renderLogLines(!older);
+    if (older) output.scrollTop = output.scrollHeight - previousHeight;
+  } catch (error) {
+    byId('log-status').textContent = 'Log error · ' + error.message;
+  } finally {
+    logLoading = false;
+  }
+}
+
+function beginLogSession(path, title, trigger) {
+  logReturnFocus = trigger || document.activeElement;
+  logPath = path;
+  logLines = [];
+  logBefore = null;
+  logAfter = null;
+  logHasMore = false;
+  byId('log-title').textContent = title;
+  byId('log-backdrop').hidden = false;
+  byId('log-viewer').hidden = false;
+  byId('app').inert = true;
+  document.querySelector('.masthead').inert = true;
+  document.body.style.overflow = 'hidden';
+  clearInterval(logPollTimer);
+  loadLogs();
+  logPollTimer = setInterval(() => loadLogs({poll:true}), 3000);
+  byId('log-close').focus();
+}
+
+function openSystemLogs(source = 'dispatcher', trigger = null) {
+  const select = byId('log-source');
+  select.querySelectorAll('option[data-run]').forEach(option => option.remove());
+  select.value = source;
+  const label = select.options[select.selectedIndex].text;
+  beginLogSession('sources/' + source, label + ' logs', trigger);
+}
+function openRunLogs(runId, trigger = null) {
+  const select = byId('log-source');
+  select.querySelectorAll('option[data-run]').forEach(option => option.remove());
+  const option = new Option('Run ' + runId, 'run:' + runId, true, true);
+  option.dataset.run = 'true';
+  select.prepend(option);
+  beginLogSession('runs/' + encodeURIComponent(runId), 'Run ' + runId, trigger);
+}
+function closeLogs() {
+  clearInterval(logPollTimer);
+  logPollTimer = null;
+  byId('log-viewer').hidden = true;
+  byId('log-backdrop').hidden = true;
+  byId('app').inert = false;
+  document.querySelector('.masthead').inert = false;
+  document.body.style.overflow = '';
+  if (logReturnFocus && logReturnFocus.focus) logReturnFocus.focus();
+}
+function exportLogText(lines) {
+  return lines.map(line => `${line.timestamp}\t${line.priority.toUpperCase()}\t${line.stream}\t${line.message}`).join('\n');
+}
+async function copyVisibleLogs() {
+  await navigator.clipboard.writeText(exportLogText(visibleLogLines()));
+  byId('log-status').textContent = 'Visible lines copied to clipboard';
+}
+function downloadLogs() {
+  const blob = new Blob([exportLogText(logLines) + '\n'], {type:'text/plain'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'github-dwh-' + byId('log-title').textContent.toLocaleLowerCase().replace(/[^a-z0-9]+/g,'-') + '.log';
+  link.click();
+  URL.revokeObjectURL(link.href);
+  byId('log-status').textContent = 'Loaded lines downloaded';
+}
+
 async function openApp() {
   byId('login').hidden = true;
   byId('app').hidden = false;
@@ -345,6 +519,9 @@ async function openApp() {
   refreshTimer = setInterval(refresh, 10000);
 }
 function signOut(message = '') {
+  clearInterval(logPollTimer);
+  logPollTimer = null;
+  if (!byId('log-viewer').hidden) closeLogs();
   clearInterval(refreshTimer);
   refreshTimer = null;
   token = '';
@@ -357,7 +534,31 @@ function signOut(message = '') {
 
 byId('login-form').addEventListener('submit', authenticate);
 byId('run-button').addEventListener('click', queueRun);
+byId('system-logs-button').addEventListener('click', event => openSystemLogs('dispatcher', event.currentTarget));
 byId('signout-button').addEventListener('click', () => signOut());
+byId('log-close').addEventListener('click', closeLogs);
+byId('log-backdrop').addEventListener('click', closeLogs);
+byId('log-more').addEventListener('click', () => loadLogs({older:true}));
+byId('log-source').addEventListener('change', event => {
+  const value = event.target.value;
+  if (value.startsWith('run:')) openRunLogs(value.slice(4), logReturnFocus);
+  else openSystemLogs(value, logReturnFocus);
+});
+byId('log-search').addEventListener('input', () => renderLogLines());
+byId('log-severity').addEventListener('change', () => renderLogLines());
+byId('log-wrap').addEventListener('change', event => byId('log-output').classList.toggle('nowrap', !event.target.checked));
+byId('log-copy').addEventListener('click', () => copyVisibleLogs().catch(() => { byId('log-status').textContent = 'Clipboard access was denied'; }));
+byId('log-download').addEventListener('click', downloadLogs);
+document.addEventListener('keydown', event => {
+  if (byId('log-viewer').hidden) return;
+  if (event.key === 'Escape') { closeLogs(); return; }
+  if (event.key !== 'Tab') return;
+  const focusable = [...byId('log-viewer').querySelectorAll('button:not([hidden]), input, select, [tabindex="0"]')].filter(element => !element.disabled && element.offsetParent !== null);
+  if (!focusable.length) return;
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+  else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+});
 if (token) openApp();
 </script>
 </body>

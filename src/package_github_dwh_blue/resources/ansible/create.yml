@@ -45,6 +45,7 @@
         - { src: Dockerfile.pocketbase, dest: /opt/github-dwh/Dockerfile.pocketbase }
         - { src: Caddyfile, dest: /opt/github-dwh/Caddyfile }
         - { src: dispatcher.py, dest: /opt/github-dwh/dispatcher.py, mode: '0755' }
+        - { src: log_api.py, dest: /opt/github-dwh/log_api.py, mode: '0755' }
         - { src: run.py, dest: /opt/github-dwh/run.py, mode: '0755' }
         - { src: bootstrap.py, dest: /opt/github-dwh/bootstrap.py, mode: '0755' }
         - { src: index.html, dest: /opt/github-dwh/pb_public/index.html }
@@ -83,8 +84,14 @@
         src: "{{ item }}"
         dest: "/etc/systemd/system/{{ item }}"
         mode: '0644'
-      loop: [github-dwh-dispatch.service, github-dwh-dispatch.timer, github-dwh-blue.service]
+      loop: [github-dwh-dispatch.service, github-dwh-dispatch.timer, github-dwh-blue.service, github-dwh-logs.service]
       notify: Reload systemd
+    - name: Enable log gateway
+      ansible.builtin.systemd:
+        name: github-dwh-logs.service
+        enabled: true
+        state: restarted
+        daemon_reload: true
     - name: Build and start services
       ansible.builtin.command: docker compose up -d --build
       args:

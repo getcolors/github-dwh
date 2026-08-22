@@ -12,6 +12,8 @@ services:
     ports:
       - 127.0.0.1:8123:8123
       - 127.0.0.1:9000:9000
+    logging:
+      driver: journald
   pocketbase:
     build:
       context: .
@@ -22,17 +24,22 @@ services:
       - /opt/github-dwh/pb_public:/pb/pb_public:ro
     ports:
       - 127.0.0.1:8090:8090
+    logging:
+      driver: journald
   caddy:
     image: caddy:2.10.2-alpine
     restart: unless-stopped
     depends_on: [pocketbase]
     volumes:
       - /opt/github-dwh/Caddyfile:/etc/caddy/Caddyfile:ro
+      - /run/github-dwh:/run/github-dwh:ro
       - caddy_data:/data
       - caddy_config:/config
     ports:
       - 80:80
       - 443:443
+    logging:
+      driver: journald
 volumes:
   caddy_data:
   caddy_config:

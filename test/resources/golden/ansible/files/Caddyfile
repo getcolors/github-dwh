@@ -1,4 +1,11 @@
 github-dwh.example.com {
   encode zstd gzip
-  reverse_proxy pocketbase:8090
+
+  handle /control/logs/* {
+    reverse_proxy unix//run/github-dwh/log-api.sock
+  }
+
+  handle {
+    reverse_proxy pocketbase:8090
+  }
 }
