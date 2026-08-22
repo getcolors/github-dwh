@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Provision a single-host GitHub organization warehouse — ClickHouse, dlt, dbt, Lightdash analytics, and a PocketBase control plane — on one Vultr instance.">
+  <title>GitHub DWH Package Skill — getcolors</title>
+  <style>
+    :root{color-scheme:light;--ink:#1f2328;--muted:#59636e;--line:#d0d7de;--soft:#f6f8fa;--blue:#0969da;--green:#1a7f37;--warn:#9a6700}*{box-sizing:border-box}body{margin:0;color:var(--ink);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}main{max-width:920px;margin:auto;padding:64px 28px 100px}h1{font-size:52px;line-height:1.05;margin:0}h2{margin-top:54px;padding-bottom:8px;border-bottom:1px solid var(--line)}h3{margin-top:30px}.lead{font-size:20px;color:var(--muted);max-width:790px}code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}pre{padding:18px;overflow:auto;border:1px solid var(--line);border-radius:8px;background:var(--soft)}:not(pre)>code{padding:.12em .35em;border-radius:5px;background:var(--soft)}a{color:var(--blue)}.eyebrow{color:var(--blue);font-weight:700;letter-spacing:.08em}.callout{padding:16px 18px;border-left:4px solid var(--green);background:#dafbe1}.warning{border-color:var(--warn);background:#fff8c5}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{padding:18px;border:1px solid var(--line);border-radius:8px}.card h3{margin-top:0}@media(max-width:650px){main{padding-top:38px}.grid{grid-template-columns:1fr}h1{font-size:40px}}
+  </style>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-4VKP1WY4QJ"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-4VKP1WY4QJ',{page_title:'GitHub DWH Package Skill — getcolors'});</script>
+<script src="https://rybbit.bigconfig.online/api/script.js" data-site-id="9fb9c41a6d49" defer></script>
+</head>
+<body><main>
+  <p class="eyebrow">BLUE PACKAGE SKILL · VULTR · GITHUB WAREHOUSE</p>
+  <h1>GitHub DWH Package Skill</h1>
+  <p class="lead">A reproducible Blue workflow for a single-host GitHub organization warehouse: dlt extracts every repository a credential can see, dbt builds ClickHouse marts, Lightdash serves the dashboards, and a PocketBase control plane schedules and records whole runs.</p>
+
+  <div class="callout"><strong>Strict ownership boundaries.</strong> PocketBase stores schedules and whole-run history only — one run record is one <code>./blue run</code>. Blue owns workflow routing, systemd owns process supervision, journald owns full logs, and Git owns desired state.</div>
+
+  <h2>Quick start</h2>
+  <pre><code>npx skills add getcolors/github-dwh
+cp .agents/skills/package-github-dwh-blue/blue ./blue
+chmod +x blue
+./blue build
+./blue create --dry-run</code></pre>
+  <p>Build renders reproducible output and dry-run walks the workflow without provider side effects. Real creation, loads, and deletion require explicit authorization.</p>
+
+  <h2>Architecture</h2>
+  <div class="grid">
+    <div class="card"><h3>Infrastructure</h3><p>OpenTofu creates one Ubuntu 24.04 Vultr instance and a firewall exposing 22, 80, and 443, plus Cloudflare DNS for the control plane and the analytics host. State lives in a shared Cloudflare R2 bucket keyed by profile.</p></div>
+    <div class="card"><h3>Warehouse</h3><p>dlt loads repositories, commits, organization events, Actions runs, and Package Skill manifests into ClickHouse; dbt builds and tests the staging and marts models on every run.</p></div>
+    <div class="card"><h3>Analytics</h3><p>Lightdash serves the semantic layer, charts, and repository dashboard from read-only ClickHouse marts, with PostgreSQL metadata and chart artifacts in a dedicated R2 bucket.</p></div>
+    <div class="card"><h3>Control plane</h3><p>PocketBase provides authenticated schedules, run-now, and run history behind Caddy TLS; a fixed systemd timer dispatches complete Blue workflow invocations and a read-only gateway serves redacted journald logs.</p></div>
+  </div>
+
+  <h2>Desired state and lifecycle</h2>
+  <p>Non-secret configuration belongs only in <code>colors.yml</code>: the GitHub organization and resources, both hostnames, ClickHouse databases, the Lightdash R2 bucket, the dispatch calendar, and the Vultr and state-backend boundary.</p>
+  <pre><code>./blue build
+./blue create --dry-run
+./blue create
+./blue run
+./blue delete</code></pre>
+  <ul>
+    <li>Supply credentials only as matching <code>COLORS_PAR_*</code> environment variables.</li>
+    <li>Never export <code>COLORS_PAR_PROFILE</code> or edit generated <code>.colors/</code>.</li>
+    <li>Keep <code>compute-prevent-destroy: true</code>; deletion remains separately guarded.</li>
+    <li><code>run</code> performs a real GitHub load and dbt build unless <code>--dry-run</code> is present.</li>
+  </ul>
+
+  <h2>Operations</h2>
+  <p>Operators start recurring or manual loads from PocketBase; the host launcher executes each as a transient systemd unit, and the control plane links Lightdash and every log source.</p>
+  <pre><code>ssh root@SERVER 'cd /opt/github-dwh &amp;&amp; docker compose ps'
+ssh root@SERVER 'journalctl -u github-dwh-dispatch.service --since -1h'
+curl https://ANALYTICS_HOST/api/v1/health</code></pre>
+
+  <div class="warning callout"><strong>One run is one workflow.</strong> Do not add task DAGs, per-step queues, sensors, or retry policy to PocketBase — retry a failure by creating a new complete run. GitHub organization events are a bounded feed; recover history from ClickHouse backups, not the API.</div>
+
+  <h2>Development and source</h2>
+  <pre><code>uv run pytest
+./scripts/golden.sh
+./scripts/launcher.sh</code></pre>
+  <p><a href="https://github.com/getcolors/github-dwh">Source on GitHub</a>. Review every golden diff before accepting it.</p>
+</main></body>
+</html>

@@ -4,6 +4,7 @@
 !.envrc
 !.agents
 !.claude
+!.nojekyll
 __pycache__/
 *.pyc
 .venv/
