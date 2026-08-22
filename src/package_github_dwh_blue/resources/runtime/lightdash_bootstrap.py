@@ -96,12 +96,12 @@ def wait_for_job(session: requests.Session, job_uuid: str) -> None:
     deadline = time.monotonic() + 900
     while time.monotonic() < deadline:
         result = checked(session.get(f"{LIGHTDASH_URL}/api/v1/jobs/{job_uuid}", timeout=30))["results"]
-        status = result.get("status")
+        status = result.get("jobStatus") or result.get("status")
         if status == "DONE":
             return
         if status == "ERROR":
             steps = result.get("steps") or []
-            details = "; ".join(f"{step.get('jobStepType') or 'step'}: {step.get('stepError')}" for step in steps if step.get("stepError"))
+            details = "; ".join(f"{step.get('stepLabel') or 'step'}: {step.get('stepError')}" for step in steps if step.get("stepError"))
             raise RuntimeError(f"Lightdash dbt compilation failed: {details or 'no step error reported'}")
         time.sleep(3)
     raise RuntimeError("Lightdash dbt compilation timed out")

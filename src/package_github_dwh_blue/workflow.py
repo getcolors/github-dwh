@@ -86,7 +86,8 @@ def _sync_lightdash(opts: dict) -> str:
     while time.monotonic() < deadline:
         status_response = session.get(f"{base}/api/v1/jobs/{job_uuid}", timeout=30)
         status_response.raise_for_status()
-        status = status_response.json()["results"].get("status")
+        job = status_response.json()["results"]
+        status = job.get("jobStatus") or job.get("status")
         if status == "DONE":
             content_path = files("package_github_dwh_blue").joinpath("resources/runtime/lightdash_content.json")
             content = json.loads(content_path.read_text())
@@ -101,8 +102,8 @@ def _sync_lightdash(opts: dict) -> str:
             response.raise_for_status()
             return project_uuid
         if status == "ERROR":
-            steps = status_response.json()["results"].get("steps") or []
-            details = "; ".join(f"{step.get('jobStepType') or 'step'}: {step.get('stepError')}" for step in steps if step.get("stepError"))
+            steps = job.get("steps") or []
+            details = "; ".join(f"{step.get('stepLabel') or 'step'}: {step.get('stepError')}" for step in steps if step.get("stepError"))
             raise RuntimeError(f"Lightdash dbt compilation failed: {details or 'no step error reported'}")
         time.sleep(3)
     raise RuntimeError("Lightdash dbt compilation timed out")
