@@ -1,0 +1,31 @@
+[project]
+name = "package-github-dwh-blue"
+version = "0.1.0"
+description = "Blue Package Skill for a GitHub organization warehouse on ClickHouse"
+requires-python = ">=3.11"
+dependencies = [
+  "blue",
+  "dlt[clickhouse]>=1.20,<2",
+  "dbt-clickhouse>=1.9,<2",
+  "requests>=2.32,<3",
+]
+
+[tool.uv.sources]
+blue = { git = "https://github.com/getcolors/blue.git", rev = "369c5aafea790a03b649b3513003651e672f3f57" }
+
+[dependency-groups]
+dev = ["pytest>=8", "pytest-asyncio>=0.24"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/package_github_dwh_blue"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

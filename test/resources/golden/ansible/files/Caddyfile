@@ -1,0 +1,4 @@
+github-dwh.example.com {
+  encode zstd gzip
+  reverse_proxy pocketbase:8090
+}

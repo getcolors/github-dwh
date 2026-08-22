@@ -1,0 +1,11 @@
+[Unit]
+Description=Poll the GitHub DWH control plane
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+Persistent=true
+Unit=github-dwh-dispatch.service
+
+[Install]
+WantedBy=timers.target

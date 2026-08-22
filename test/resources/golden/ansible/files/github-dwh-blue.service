@@ -1,0 +1,12 @@
+[Unit]
+Description=GitHub DWH Blue workflow run
+After=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/github-dwh/environment
+WorkingDirectory=/opt/github-dwh
+ExecStart=/opt/github-dwh/.venv/bin/python /opt/github-dwh/run.py %i
+KillMode=control-group
+TimeoutStartSec=6h
+NoNewPrivileges=true

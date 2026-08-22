@@ -1,0 +1,15 @@
+name: github_dwh
+version: 1.0.0
+config-version: 2
+profile: github_dwh
+model-paths: [models]
+macro-paths: [macros]
+clean-targets: [target, dbt_packages]
+models:
+  github_dwh:
+    staging:
+      +materialized: view
+      +schema: analytics
+    marts:
+      +materialized: table
+      +schema: marts

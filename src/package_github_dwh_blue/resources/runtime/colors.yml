@@ -1,0 +1,26 @@
+profile: <{ profile }>
+workdir: /var/lib/github-dwh/colors
+control-plane-host: <{ control-plane-host }>
+github-org: <{ github-org }>
+github-include-private: <{ github-include-private }>
+github-resources:
+  - repositories
+  - commits
+  - organization-events
+  - workflow-runs
+  - package-skills
+clickhouse-raw-database: <{ clickhouse-raw-database }>
+clickhouse-analytics-database: <{ clickhouse-analytics-database }>
+clickhouse-marts-database: <{ clickhouse-marts-database }>
+clickhouse-user: <{ clickhouse-user }>
+pocketbase-superuser-email: <{ pocketbase-superuser-email }>
+provider-compute: vultr
+provider-dns: cloudflare
+provider-backend: local
+compute-prevent-destroy: true
+vultr-name: <{ vultr-name }>
+vultr-region: <{ vultr-region }>
+vultr-plan: <{ vultr-plan }>
+vultr-os-id: <{ vultr-os-id }>
+vultr-ssh-key-name: <{ vultr-ssh-key-name }>
+ssh-private-key: /root/.ssh/id_ed25519

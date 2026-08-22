@@ -1,0 +1,38 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.8
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: raw_github
+      CLICKHOUSE_USER: github_dwh
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    env_file: /etc/github-dwh/environment
+    volumes:
+      - /var/lib/github-dwh/clickhouse:/var/lib/clickhouse
+    ports:
+      - 127.0.0.1:8123:8123
+      - 127.0.0.1:9000:9000
+  pocketbase:
+    build:
+      context: .
+      dockerfile: Dockerfile.pocketbase
+    restart: unless-stopped
+    volumes:
+      - /var/lib/github-dwh/pocketbase:/pb/pb_data
+      - /opt/github-dwh/pb_public:/pb/pb_public:ro
+    ports:
+      - 127.0.0.1:8090:8090
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    depends_on: [pocketbase]
+    volumes:
+      - /opt/github-dwh/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    ports:
+      - 80:80
+      - 443:443
+volumes:
+  caddy_data:
+  caddy_config:

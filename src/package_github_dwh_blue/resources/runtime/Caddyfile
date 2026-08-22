@@ -1,0 +1,4 @@
+<{ control-plane-host }> {
+  encode zstd gzip
+  reverse_proxy pocketbase:8090
+}

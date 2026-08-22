@@ -1,0 +1,11 @@
+version: 2
+sources:
+  - name: github
+    database: "{{ env_var('CLICKHOUSE_RAW_DATABASE') }}"
+    schema: "{{ env_var('CLICKHOUSE_RAW_DATABASE') }}"
+    tables:
+      - name: repositories
+      - name: commits
+      - name: workflow_runs
+      - name: organization_events
+      - name: package_skills

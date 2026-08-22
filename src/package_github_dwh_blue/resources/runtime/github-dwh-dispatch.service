@@ -1,0 +1,9 @@
+[Unit]
+Description=Dispatch queued GitHub DWH workflow runs
+After=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/github-dwh/environment
+ExecStart=/opt/github-dwh/.venv/bin/python /opt/github-dwh/dispatcher.py
+NoNewPrivileges=true

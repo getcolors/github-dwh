@@ -1,0 +1,23 @@
+profile: github-dwh-test
+workdir: .colors
+control-plane-host: github-dwh.example.com
+github-org: getcolors
+github-include-private: true
+github-resources: [repositories, commits, organization-events, workflow-runs, package-skills]
+dispatch-calendar: "*:0/15"
+dispatch-timezone: UTC
+clickhouse-raw-database: raw_github
+clickhouse-analytics-database: analytics
+clickhouse-marts-database: marts
+clickhouse-user: github_dwh
+pocketbase-superuser-email: admin@example.com
+provider-compute: vultr
+provider-dns: cloudflare
+provider-backend: local
+compute-prevent-destroy: true
+vultr-name: github-dwh-test
+vultr-region: ams
+vultr-plan: vc2-4c-8gb
+vultr-os-id: 2284
+vultr-ssh-key-name: github-dwh-test
+ssh-private-key: .ssh/id_ed25519

@@ -1,0 +1,20 @@
+---
+- name: Remove GitHub DWH services before infrastructure deletion
+  hosts: github_dwh
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Wait briefly for host
+      ansible.builtin.wait_for_connection:
+        timeout: 60
+    - name: Stop dispatcher
+      ansible.builtin.systemd:
+        name: github-dwh-dispatch.timer
+        enabled: false
+        state: stopped
+      failed_when: false
+    - name: Stop containers
+      ansible.builtin.command: docker compose down
+      args: { chdir: /opt/github-dwh }
+      failed_when: false
+      changed_when: true

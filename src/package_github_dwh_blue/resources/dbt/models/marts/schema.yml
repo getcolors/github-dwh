@@ -1,0 +1,9 @@
+version: 2
+models:
+  - name: repository_health
+    description: One current health row for every repository accessible to the getcolors credential.
+    columns:
+      - name: repository_id
+        tests: [not_null, unique]
+      - name: repository_name
+        tests: [not_null, unique]

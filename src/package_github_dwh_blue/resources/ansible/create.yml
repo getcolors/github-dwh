@@ -1,0 +1,135 @@
+---
+- name: Converge GitHub DWH host
+  hosts: github_dwh
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Wait for SSH
+      ansible.builtin.wait_for_connection:
+        timeout: 600
+    - name: Gather facts
+      ansible.builtin.setup:
+    - name: Install host packages
+      ansible.builtin.apt:
+        update_cache: true
+        name: [ca-certificates, curl, docker.io, docker-compose-v2, git, python3, python3-venv]
+        state: present
+    - name: Enable Docker
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+    - name: Create directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        mode: "{{ item.mode | default('0755') }}"
+      loop:
+        - { path: /opt/github-dwh }
+        - { path: /opt/github-dwh/dbt }
+        - { path: /opt/github-dwh/dbt/macros }
+        - { path: /opt/github-dwh/dbt/models/staging }
+        - { path: /opt/github-dwh/dbt/models/marts }
+        - { path: /opt/github-dwh/pb_public }
+        - { path: /var/lib/github-dwh/dlt }
+        - { path: /var/lib/github-dwh/pocketbase }
+        - { path: /var/lib/github-dwh/clickhouse }
+        - { path: /etc/github-dwh, mode: '0700' }
+    - name: Copy runtime files
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: "{{ item.mode | default('0644') }}"
+      loop:
+        - { src: docker-compose.yml, dest: /opt/github-dwh/docker-compose.yml }
+        - { src: Dockerfile.pocketbase, dest: /opt/github-dwh/Dockerfile.pocketbase }
+        - { src: Caddyfile, dest: /opt/github-dwh/Caddyfile }
+        - { src: dispatcher.py, dest: /opt/github-dwh/dispatcher.py, mode: '0755' }
+        - { src: run.py, dest: /opt/github-dwh/run.py, mode: '0755' }
+        - { src: bootstrap.py, dest: /opt/github-dwh/bootstrap.py, mode: '0755' }
+        - { src: index.html, dest: /opt/github-dwh/pb_public/index.html }
+        - { src: colors.yml, dest: /etc/github-dwh/colors.yml, mode: '0600' }
+        - { src: dbt/dbt_project.yml, dest: /opt/github-dwh/dbt/dbt_project.yml }
+        - { src: dbt/profiles.yml, dest: /opt/github-dwh/dbt/profiles.yml }
+        - { src: dbt/macros/generate_schema_name.sql, dest: /opt/github-dwh/dbt/macros/generate_schema_name.sql }
+        - { src: dbt/models/sources.yml, dest: /opt/github-dwh/dbt/models/sources.yml }
+        - { src: dbt/models/staging/stg_repositories.sql, dest: /opt/github-dwh/dbt/models/staging/stg_repositories.sql }
+        - { src: dbt/models/staging/stg_commits.sql, dest: /opt/github-dwh/dbt/models/staging/stg_commits.sql }
+        - { src: dbt/models/staging/stg_workflow_runs.sql, dest: /opt/github-dwh/dbt/models/staging/stg_workflow_runs.sql }
+        - { src: dbt/models/marts/repository_health.sql, dest: /opt/github-dwh/dbt/models/marts/repository_health.sql }
+        - { src: dbt/models/marts/schema.yml, dest: /opt/github-dwh/dbt/models/marts/schema.yml }
+    - name: Render secret environment
+      ansible.builtin.copy:
+        dest: /etc/github-dwh/environment
+        mode: '0600'
+        content: |
+          COLORS_PAR_GITHUB_TOKEN={{ lookup('env','COLORS_PAR_GITHUB_TOKEN') }}
+          COLORS_PAR_CLICKHOUSE_PASSWORD={{ lookup('env','COLORS_PAR_CLICKHOUSE_PASSWORD') }}
+          CLICKHOUSE_PASSWORD={{ lookup('env','COLORS_PAR_CLICKHOUSE_PASSWORD') }}
+          COLORS_PAR_POCKETBASE_SUPERUSER_PASSWORD={{ lookup('env','COLORS_PAR_POCKETBASE_SUPERUSER_PASSWORD') }}
+          POCKETBASE_URL=http://127.0.0.1:8090
+          POCKETBASE_SUPERUSER_EMAIL=<{ pocketbase-superuser-email }>
+          DLT_PIPELINES_DIR=/var/lib/github-dwh/dlt
+    - name: Install Python environment
+      ansible.builtin.pip:
+        name:
+          - requests>=2.32,<3
+          - package-github-dwh-blue @ git+https://github.com/getcolors/github-dwh.git@<{ package-revision }>
+        virtualenv: /opt/github-dwh/.venv
+        virtualenv_command: python3 -m venv
+    - name: Install systemd files
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "/etc/systemd/system/{{ item }}"
+        mode: '0644'
+      loop: [github-dwh-dispatch.service, github-dwh-dispatch.timer, github-dwh-blue.service]
+      notify: Reload systemd
+    - name: Build and start services
+      ansible.builtin.command: docker compose up -d --build
+      args:
+        chdir: /opt/github-dwh
+      register: compose
+      changed_when: "'Started' in compose.stdout or 'Created' in compose.stdout or 'Building' in compose.stdout"
+    - name: Wait for PocketBase
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8090/api/health
+        status_code: 200
+      register: pb_health
+      retries: 30
+      delay: 2
+      until: pb_health.status == 200
+    - name: Upsert PocketBase superuser
+      ansible.builtin.command:
+        cmd: >-
+          docker compose exec -T pocketbase /pb/pocketbase superuser upsert
+          <{ pocketbase-superuser-email }>
+          {{ lookup('env','COLORS_PAR_POCKETBASE_SUPERUSER_PASSWORD') }}
+      args: { chdir: /opt/github-dwh }
+      no_log: true
+      changed_when: false
+    - name: Bootstrap collections
+      ansible.builtin.command: /opt/github-dwh/.venv/bin/python /opt/github-dwh/bootstrap.py
+      environment:
+        POCKETBASE_URL: http://127.0.0.1:8090
+        POCKETBASE_SUPERUSER_EMAIL: <{ pocketbase-superuser-email }>
+        POCKETBASE_SUPERUSER_PASSWORD: "{{ lookup('env','COLORS_PAR_POCKETBASE_SUPERUSER_PASSWORD') }}"
+      no_log: true
+      changed_when: false
+    - name: Enable dispatcher timer
+      ansible.builtin.systemd:
+        name: github-dwh-dispatch.timer
+        enabled: true
+        state: started
+        daemon_reload: true
+    - name: Check ClickHouse
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8123/ping
+        user: <{ clickhouse-user }>
+        password: "{{ lookup('env','COLORS_PAR_CLICKHOUSE_PASSWORD') }}"
+        force_basic_auth: true
+        status_code: 200
+      no_log: true
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
