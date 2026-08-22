@@ -92,15 +92,24 @@
           POCKETBASE_URL=http://127.0.0.1:8090
           POCKETBASE_SUPERUSER_EMAIL=admin@example.com
           DLT_PIPELINES_DIR=/var/lib/github-dwh/dlt
+    # pip judges pinned git requirements by name and version alone, and the
+    # version never changes, so a moved pin is "already satisfied" and never
+    # reaches the host. Force-reinstall just the two pinned packages, then let
+    # the plain install resolve any dependencies the new revisions added.
+    - name: Reinstall pinned packages
+      ansible.builtin.pip:
+        name:
+          - blue @ git+https://github.com/getcolors/blue.git@369c5aafea790a03b649b3513003651e672f3f57
+          - package-github-dwh-blue @ git+https://github.com/getcolors/github-dwh.git@UNPINNED
+        extra_args: --force-reinstall --no-deps
+        virtualenv: /opt/github-dwh/.venv
+        virtualenv_command: python3 -m venv
     - name: Install Python environment
       ansible.builtin.pip:
         name:
           - requests>=2.32,<3
           - blue @ git+https://github.com/getcolors/blue.git@369c5aafea790a03b649b3513003651e672f3f57
           - package-github-dwh-blue @ git+https://github.com/getcolors/github-dwh.git@UNPINNED
-        # The package version never changes, so without --upgrade pip reports
-        # the requirement satisfied and pin bumps never reach the host.
-        state: latest
         virtualenv: /opt/github-dwh/.venv
         virtualenv_command: python3 -m venv
     - name: Install systemd files
