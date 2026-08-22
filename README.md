@@ -18,4 +18,4 @@ PocketBase is not the workflow engine. One run record maps to one `./blue run`; 
 ./blue delete
 ```
 
-Desired state is `colors.yml`; secrets are matching `COLORS_PAR_*` variables. Generated `.colors/` output and OpenTofu state must not be committed.
+Desired state is `colors.yml`; secrets are matching `COLORS_PAR_*` variables. Generated `.colors/` output and OpenTofu state must not be committed. Operators start recurring or manual production loads through PocketBase; the installed host launcher executes them under transient systemd units. See [RECOVERY.md](RECOVERY.md) for backup, rebuild, rotation, and diagnostic procedures.
