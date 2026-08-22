@@ -1,6 +1,7 @@
 profile: github-dwh-test
 workdir: /var/lib/github-dwh/colors
 control-plane-host: github-dwh.example.com
+analytics-host: analytics.github-dwh.example.com
 github-org: getcolors
 github-include-private: true
 github-resources:
@@ -13,6 +14,10 @@ clickhouse-raw-database: raw_github
 clickhouse-analytics-database: analytics
 clickhouse-marts-database: marts
 clickhouse-user: github_dwh
+lightdash-clickhouse-user: lightdash
+lightdash-r2-bucket: github-dwh-lightdash-test
+lightdash-r2-endpoint: https://example.r2.cloudflarestorage.com
+lightdash-r2-region: auto
 pocketbase-superuser-email: admin@example.com
 provider-compute: vultr
 provider-dns: cloudflare

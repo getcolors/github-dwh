@@ -17,7 +17,7 @@ from blue.workflow import advice_add, workflow
 
 from . import tools
 from .extract import load
-from .validate import secret_errors, state_errors
+from .validate import env_errors, secret_errors, state_errors
 
 
 async def start_step(original: dict) -> dict:
@@ -31,7 +31,7 @@ async def start_step(original: dict) -> dict:
             return [f"compute destruction is protected; set {par_name('compute-prevent-destroy')}=false to delete"]
         return []
 
-    return await preflight(original, defaults={"compute-prevent-destroy": True, "provider-compute": "vultr", "provider-dns": "cloudflare", "provider-backend": "local"}, overlay=read_pars, validators=[lambda o, _e, _c: state_errors(o), lambda o, _e, c: secret_errors(o, c["event"]) if c["real"] and c["event"] in ("create", "delete", "run") else [], safety], after_validate=after)
+    return await preflight(original, defaults={"compute-prevent-destroy": True, "provider-compute": "vultr", "provider-dns": "cloudflare", "provider-backend": "local"}, overlay=read_pars, validators=[lambda _o, e, _c: env_errors(e), lambda o, _e, _c: state_errors(o), lambda o, _e, c: secret_errors(o, c["event"]) if c["real"] and c["event"] in ("create", "delete", "run") else [], safety], after_validate=after)
 
 
 async def tofu_step(opts: dict) -> dict:
@@ -125,7 +125,7 @@ def wire_fn(step: str, run_opts: dict):
 
 def create_workflow():
     wf = workflow(start="github-dwh/start", wire_fn=wire_fn)
-    wf = advice_add(wf, "github-dwh/tofu", "before", "github-dwh/backend", tofu.local_backend_advice(lambda o: tools.tool_dir(o, "tofu")))
+    wf = advice_add(wf, "github-dwh/tofu", "before", "github-dwh/backend", tofu.conventional_backend_advice(dir=lambda o: tools.tool_dir(o, "tofu"), key=lambda o: f"{o.get('profile') or 'github-dwh'}/tofu.tfstate"))
     wf = progress.advise(wf)
     return dry_run.advise(wf, ["github-dwh/tofu", "github-dwh/ansible", "github-dwh/dlt", "github-dwh/dbt-run", "github-dwh/dbt-test", "github-dwh/lightdash"])
 

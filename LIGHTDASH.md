@@ -30,8 +30,9 @@ Everything runs on the existing Vultr host.
 
 - Lightdash `1.237.0`
 - PostgreSQL `16.10-bookworm` for Lightdash metadata
-- MinIO plus `mc` initialization for Lightdash's required S3-compatible object
-  storage
+- Cloudflare R2 for Lightdash's required S3-compatible object storage
+  (desired state as of 2026-08-22; the last production convergence still ran
+  the MinIO it replaced — see "R2 migration" below)
 - ClickHouse `25.8`, shared with the warehouse
 - A dedicated read-only ClickHouse user for Lightdash
 - Caddy HTTPS reverse proxy
@@ -45,7 +46,8 @@ failure. Caddy obtains and serves the public certificate directly.
 Persistent data is stored under:
 
 - `/var/lib/github-dwh/lightdash-postgres`
-- `/var/lib/github-dwh/lightdash-minio`
+- the R2 bucket named by `lightdash-r2-bucket` (previously
+  `/var/lib/github-dwh/lightdash-minio` on the host)
 
 The Compose and Ansible desired state is under:
 
@@ -90,14 +92,19 @@ validated by the package and include credentials for:
 - Lightdash encryption
 - Lightdash PostgreSQL
 - Lightdash's read-only ClickHouse user
-- MinIO/S3 object storage
+- Lightdash's R2 object storage (`COLORS_PAR_LIGHTDASH_R2_ACCESS_KEY_ID`,
+  `COLORS_PAR_LIGHTDASH_R2_SECRET_ACCESS_KEY`; these replaced
+  `COLORS_PAR_LIGHTDASH_S3_PASSWORD`)
+- the R2 state backend (`COLORS_PAR_R2_ACCESS_KEY_ID`,
+  `COLORS_PAR_R2_SECRET_ACCESS_KEY`) when `provider-backend` is `r2`
 
 Use the existing deployment environment rather than creating replacement values
 unless recovery explicitly requires rotation.
 
 ## What works now
 
-The following was confirmed on the production host:
+The following was confirmed on the production host before the R2 migration
+below; the MinIO items describe the configuration that was then live:
 
 - Lightdash, PostgreSQL, and MinIO containers start.
 - The MinIO bucket initialization completes.
@@ -161,6 +168,39 @@ It may be stale and should not be assumed to be the latest job.
 The dashboard/content upload has not yet been confirmed. Do not report the
 feature complete until the dashboard opens and queries ClickHouse successfully.
 
+## R2 migration (2026-08-22, desired state only — not yet deployed)
+
+The package now uses Cloudflare R2 twice, and neither use has been converged
+to production yet:
+
+1. **Lightdash object storage.** The MinIO and mc-init services are gone from
+   the Compose desired state. Lightdash's `S3_ENDPOINT`, `S3_REGION`, and
+   `S3_BUCKET` come from the new `lightdash-r2-bucket`,
+   `lightdash-r2-endpoint`, and `lightdash-r2-region` keys; `S3_ACCESS_KEY`
+   and `S3_SECRET_KEY` come from `COLORS_PAR_LIGHTDASH_R2_ACCESS_KEY_ID` and
+   `COLORS_PAR_LIGHTDASH_R2_SECRET_ACCESS_KEY` via `/etc/github-dwh/environment`.
+2. **OpenTofu state backend.** `provider-backend: r2` is now accepted and the
+   deployment sets it, with the workspace's shared state bucket and the key
+   `github-dwh-vultr/tofu.tfstate`. Credentials are
+   `COLORS_PAR_R2_ACCESS_KEY_ID` / `COLORS_PAR_R2_SECRET_ACCESS_KEY`.
+
+Before the next real `create`:
+
+- Create the dedicated Lightdash bucket (deployment value:
+  `github-dwh-lightdash`) in the same account/jurisdiction as its configured
+  endpoint, and mint an R2 API token scoped to that bucket only.
+- Add the four new `COLORS_PAR_*` values to `github-dwh-vultr/.envrc.private`
+  and remove `COLORS_PAR_LIGHTDASH_S3_PASSWORD`.
+- Migrate the existing local state: in
+  `github-dwh-vultr/.colors/github-dwh-vultr/tofu/`, after a `./blue build`
+  has rewritten `backend.tf.json`, run `tofu init -migrate-state` with
+  `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` set to the state credentials. A
+  plain `create` fails on the changed backend until the state is migrated.
+- The first converge runs `docker compose up` with `--remove-orphans`, which
+  stops the MinIO containers. `/var/lib/github-dwh/lightdash-minio` remains on
+  disk; remove it manually once the dashboard is confirmed against R2. Chart
+  artifacts in MinIO are regenerated caches/exports and are not migrated.
+
 ## Resume procedure
 
 Work in `github-dwh/` for package changes and `github-dwh-vultr/` for deployment
@@ -216,7 +256,6 @@ cd /opt/github-dwh
 docker compose ps
 docker compose logs --tail=200 lightdash
 docker compose logs --tail=100 lightdash-db
-docker compose logs --tail=100 lightdash-minio
 ```
 
 On the host, table existence can be checked with the credentials already loaded

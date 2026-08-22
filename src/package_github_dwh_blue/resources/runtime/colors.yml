@@ -1,6 +1,7 @@
 profile: <{ profile }>
 workdir: /var/lib/github-dwh/colors
 control-plane-host: <{ control-plane-host }>
+analytics-host: <{ analytics-host }>
 github-org: <{ github-org }>
 github-include-private: <{ github-include-private }>
 github-resources:
@@ -13,6 +14,10 @@ clickhouse-raw-database: <{ clickhouse-raw-database }>
 clickhouse-analytics-database: <{ clickhouse-analytics-database }>
 clickhouse-marts-database: <{ clickhouse-marts-database }>
 clickhouse-user: <{ clickhouse-user }>
+lightdash-clickhouse-user: <{ lightdash-clickhouse-user }>
+lightdash-r2-bucket: <{ lightdash-r2-bucket }>
+lightdash-r2-endpoint: <{ lightdash-r2-endpoint }>
+lightdash-r2-region: <{ lightdash-r2-region }>
 pocketbase-superuser-email: <{ pocketbase-superuser-email }>
 provider-compute: vultr
 provider-dns: cloudflare

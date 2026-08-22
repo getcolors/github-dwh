@@ -26,7 +26,6 @@ SOURCES = {
     "clickhouse": ("container", "github-dwh-clickhouse-1"),
     "lightdash": ("container", "github-dwh-lightdash-1"),
     "lightdash-postgres": ("container", "github-dwh-lightdash-db-1"),
-    "lightdash-object-storage": ("container", "github-dwh-lightdash-minio-1"),
 }
 PRIORITIES = {"0": "emergency", "1": "alert", "2": "critical", "3": "error", "4": "warning", "5": "notice", "6": "info", "7": "debug"}
 SECRET_KEYS = ("COLORS_PAR_GITHUB_TOKEN", "COLORS_PAR_CLICKHOUSE_PASSWORD", "CLICKHOUSE_PASSWORD", "COLORS_PAR_POCKETBASE_SUPERUSER_PASSWORD")

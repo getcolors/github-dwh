@@ -61,6 +61,11 @@ async def tofu_infra(opts: dict) -> dict:
     directory = tool_dir(opts, "tofu")
     specs = [_spec("tofu/main.tf", f"{directory}/main.tf", _terraform_data(opts))]
     env = {"VULTR_API_KEY": str(opts.get("vultr-api-key") or ""), "CLOUDFLARE_API_TOKEN": str(opts.get("cloudflare-api-token") or "")}
+    if opts.get("provider-backend") == "r2":
+        # R2 state authenticates through the AWS chain; naming the credentials
+        # in backend.tf.json would persist them under .terraform/.
+        env["AWS_ACCESS_KEY_ID"] = str(opts.get("r2-access-key-id") or "")
+        env["AWS_SECRET_ACCESS_KEY"] = str(opts.get("r2-secret-access-key") or "")
     return await tofu.tofu_with_spec(opts, specs, dir=directory, env=env)
 
 
