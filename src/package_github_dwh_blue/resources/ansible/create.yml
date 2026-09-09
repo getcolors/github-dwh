@@ -99,7 +99,7 @@
     - name: Reinstall pinned packages
       ansible.builtin.pip:
         name:
-          - blue @ git+https://github.com/getcolors/blue.git@369c5aafea790a03b649b3513003651e672f3f57
+          - blue @ git+https://github.com/getcolors/blue.git@290f313ead5ca162875c33a049c880da017eae09
           - package-github-dwh-blue @ git+https://github.com/getcolors/github-dwh.git@<{ package-revision }>
         extra_args: --force-reinstall --no-deps
         virtualenv: /opt/github-dwh/.venv
@@ -108,7 +108,7 @@
       ansible.builtin.pip:
         name:
           - requests>=2.32,<3
-          - blue @ git+https://github.com/getcolors/blue.git@369c5aafea790a03b649b3513003651e672f3f57
+          - blue @ git+https://github.com/getcolors/blue.git@290f313ead5ca162875c33a049c880da017eae09
           - package-github-dwh-blue @ git+https://github.com/getcolors/github-dwh.git@<{ package-revision }>
         virtualenv: /opt/github-dwh/.venv
         virtualenv_command: python3 -m venv
