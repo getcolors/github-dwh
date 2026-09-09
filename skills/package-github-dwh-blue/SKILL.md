@@ -43,3 +43,5 @@ credential chain. Daily backups at hour 3 and disabled IPv6 are explicit
 requirements, currently supported by the library Vultr adapter. Old combined
 `<profile>/tofu.tfstate` deployments require a reviewed migration before these
 commands can converge them. Do not remove state to bypass ownership checks.
+
+The package owns a locked SSH config updater for the profile alias. It writes the resolved address and user, adds `IdentityFile ~/.ssh/<profile>` only for managed keys, refuses foreign aliases before create, and removes its alias before compute destruction. An explicit external private key remains an Ansible input. Build renders the updater without reading the local SSH configuration.

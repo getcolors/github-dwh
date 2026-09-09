@@ -15,7 +15,7 @@ from blue.lifecycle import preflight
 from blue.runtime import runtime
 from blue.workflow import advice_add, workflow
 
-from . import tools, compute
+from . import tools, compute, ssh_config
 from .extract import load
 from .validate import env_errors, secret_errors, state_errors
 
@@ -26,7 +26,7 @@ async def start_step(original: dict) -> dict:
             return [f"compute destruction is protected; set {par_name('compute-prevent-destroy')}=false to delete"]
         return []
 
-    return await preflight(original, defaults={"compute-prevent-destroy": True, "provider-compute": "vultr", "provider-dns": "cloudflare", "provider-backend": "r2"}, overlay=read_pars, validators=[lambda _o, e, _c: env_errors(e), lambda o, _e, _c: state_errors(o), lambda o, _e, c: secret_errors(o, c["event"]) if c["real"] and c["event"] in ("create", "delete", "run") else [], safety])
+    return await preflight(original, defaults={"compute-prevent-destroy": True, "provider-compute": "vultr", "provider-dns": "cloudflare", "provider-backend": "r2"}, overlay=read_pars, validators=[lambda _o, e, _c: env_errors(e), lambda o, _e, _c: state_errors(o), lambda o, _e, c: secret_errors(o, c["event"]) if c["real"] and c["event"] in ("create", "delete", "run") else [], safety], after_validate=lambda o, _e, c: ssh_config.preflight({**o, "blue/exit": 0}) if c["real"] and c["event"] == "create" else o)
 
 
 async def tofu_step(opts: dict) -> dict:
@@ -112,15 +112,15 @@ def wire_fn(step: str, run_opts: dict):
     if event == "run":
         return {"github-dwh/start": (start_step, "github-dwh/dlt"), "github-dwh/dlt": (dlt_step, "github-dwh/dbt-run"), "github-dwh/dbt-run": (dbt_run_step, "github-dwh/dbt-test"), "github-dwh/dbt-test": (dbt_test_step, "github-dwh/lightdash"), "github-dwh/lightdash": (lightdash_step,)}.get(step)
     if event == "delete":
-        return {"github-dwh/start": (start_step, "github-dwh/load"), "github-dwh/load": (compute.load_step, "github-dwh/ansible"), "github-dwh/ansible": (ansible_step, "github-dwh/tofu"), "github-dwh/tofu": (tofu_step, "github-dwh/compute"), "github-dwh/compute": (compute.compute_step,)}.get(step)
-    return {"github-dwh/start": (start_step, "github-dwh/compute"), "github-dwh/compute": (compute.compute_step, "github-dwh/tofu"), "github-dwh/tofu": (tofu_step, "github-dwh/ansible"), "github-dwh/ansible": (ansible_step,)}.get(step)
+        return {"github-dwh/start": (start_step, "github-dwh/load"), "github-dwh/load": (compute.load_step, "github-dwh/ansible-local"), "github-dwh/ansible-local": (tools.ansible_local_step, "github-dwh/ansible"), "github-dwh/ansible": (ansible_step, "github-dwh/tofu"), "github-dwh/tofu": (tofu_step, "github-dwh/compute"), "github-dwh/compute": (compute.compute_step,)}.get(step)
+    return {"github-dwh/start": (start_step, "github-dwh/compute"), "github-dwh/compute": (compute.compute_step, "github-dwh/ansible-local"), "github-dwh/ansible-local": (tools.ansible_local_step, "github-dwh/tofu"), "github-dwh/tofu": (tofu_step, "github-dwh/ansible"), "github-dwh/ansible": (ansible_step,)}.get(step)
 
 
 def create_workflow():
     wf = workflow(start="github-dwh/start", wire_fn=wire_fn)
     wf = advice_add(wf, "github-dwh/tofu", "before", "github-dwh/backend", tofu.conventional_backend_advice(dir=lambda o: tools.tool_dir(o, "dns"), key=lambda o: f"{o.get('profile') or 'github-dwh'}/dns.tfstate"))
     wf = progress.advise(wf)
-    return dry_run.advise(wf, ["github-dwh/load", "github-dwh/compute", "github-dwh/tofu", "github-dwh/ansible", "github-dwh/dlt", "github-dwh/dbt-run", "github-dwh/dbt-test", "github-dwh/lightdash"])
+    return dry_run.advise(wf, ["github-dwh/ansible-local", "github-dwh/load", "github-dwh/compute", "github-dwh/tofu", "github-dwh/ansible", "github-dwh/dlt", "github-dwh/dbt-run", "github-dwh/dbt-test", "github-dwh/lightdash"])
 
 
 github_dwh_workflow = create_workflow()

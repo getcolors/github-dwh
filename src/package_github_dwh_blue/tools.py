@@ -56,7 +56,7 @@ def _infra(opts: dict) -> dict:
 def _ansible_data(opts: dict) -> dict:
     infra = _infra(opts)
     private = opts.get("github-dwh/private-key")
-    if not private or not infra.get("ip") or not infra.get("user"):
+    if not infra.get("ip") or not infra.get("user"):
         raise ValueError("compute connection parameters unavailable")
     return {**opts, "server-ip": infra["ip"], "server-user": infra["user"], "github-dwh/private-key": private, "package-revision": os.environ.get("GITHUB_DWH_PACKAGE_REVISION", PACKAGE_REVISION)}
 
@@ -90,3 +90,13 @@ async def ansible_host(opts: dict) -> dict:
     directory, data = tool_dir(opts, "ansible"), _ansible_data(opts)
     result = await ansible_with_spec(opts, _ansible_specs(opts), dir=directory, inventory="inventory.ini", private_key=data["github-dwh/private-key"], playbooks={"create": "create.yml", "delete": "delete.yml"}, host_key_checking=False, extra_vars={"github_dwh_host": data["control-plane-host"]})
     return result
+
+
+async def ansible_local_step(opts):
+    if opts.get('github-dwh/already-destroyed'):
+        return opts
+    directory = tool_dir(opts, 'ansible-local')
+    data = {**opts, 'ssh-keygen': opts.get('colors-compute/key', {}).get('mode') == 'managed'}
+    node = _infra(opts)
+    specs = [_spec('ansible-local/' + name, directory + '/' + name, data) for name in ['ansible.cfg', 'inventory.ini', 'main.yml']]
+    return await ansible_with_spec(opts, specs, dir=directory, inventory='inventory.ini', playbooks={'create':'main.yml','delete':'main.yml'}, extra_vars={'host_alias':opts['profile'],'ip':node['ip'],'user':node['user'],'block_state':'absent' if opts.get('blue/event')=='delete' else 'present'})

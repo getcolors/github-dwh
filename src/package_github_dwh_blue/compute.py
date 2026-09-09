@@ -37,7 +37,7 @@ def attach(opts, result):
     cluster = result.get('cluster', {})
     node = next((node for node in cluster.get('nodes', []) if node['node_id'] == cluster.get('entry_node_id')), {})
     key = result.get('key', {})
-    return {**opts, 'blue/exit': 0, 'colors-compute/cluster': cluster,
+    return {**opts, 'blue/exit': 0, 'colors-compute/cluster': cluster, 'colors-compute/key': key,
             'github-dwh/infra': node, 'github-dwh/private-key': key.get('private_key_path') or node.get('ssh_identity_file')}
 
 
