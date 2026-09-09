@@ -94,3 +94,14 @@ async def test_external_private_path_is_forwarded(tmp_path, monkeypatch):
     assert captured['private_key'] == '/selected/key'
     await tools.ansible_host({**opts, 'github-dwh/private-key':None})
     assert captured['private_key'] is None
+
+async def test_pending_migration_guard_reaches_library_without_fallback(tmp_path, monkeypatch):
+    async def guarded(opts, topology, requirements):
+        assert opts['compute-require-existing-state'] is True
+        assert requirements['legacy_state_keys'] == ['github-dwh-test/tofu.tfstate']
+        return {'status': 'error'}
+    monkeypatch.setattr(compute, 'orchestrate', guarded)
+    result = await compute.compute_step({**fixture(tmp_path), 'blue/event': 'create',
+                                         'compute-require-existing-state': True})
+    assert result['blue/exit'] == 1
+    assert 'github-dwh/infra' not in result

@@ -45,3 +45,11 @@ requirements, currently supported by the library Vultr adapter. Old combined
 commands can converge them. Do not remove state to bypass ownership checks.
 
 The package owns a locked SSH config updater for the profile alias. It writes the resolved address and user, adds `IdentityFile ~/.ssh/<profile>` only for managed keys, refuses foreign aliases before create, and removes its alias before compute destruction. An explicit external private key remains an Ansible input. Build renders the updater without reading the local SSH configuration.
+
+## Existing compute ownership
+
+`compute-require-existing-state: true` refuses a create before any ownership
+write when the library journal is absent, uninitialized, or retired. Use it
+when the old deployment still requires an explicit state migration; an empty
+new remote key is not evidence that old local resources are gone. The guard
+does not transfer state or authorize deletion.

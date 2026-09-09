@@ -34,3 +34,11 @@ paths already encode the repository. Never add one tag without the other.
 ## Git
 
 Work on the current branch. Do not commit or push unless explicitly authorized.
+
+## Existing compute ownership
+
+`compute-require-existing-state: true` refuses a create before any ownership
+write when the library journal is absent, uninitialized, or retired. Use it
+when the old deployment still requires an explicit state migration; an empty
+new remote key is not evidence that old local resources are gone. The guard
+does not transfer state or authorize deletion.
