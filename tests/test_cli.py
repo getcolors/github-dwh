@@ -8,7 +8,9 @@ async def test_build_is_offline_and_renders(tmp_path, monkeypatch):
     state.write_text(fixture.read_text())
     result = await run("build", "-f", str(state))
     assert result["blue/exit"] == 0
-    assert (tmp_path / ".colors/github-dwh-test/tofu/main.tf").exists()
+    assert (tmp_path / ".colors/github-dwh-test/dns/main.tf").exists()
+    assert (tmp_path / ".colors/github-dwh-test/compute/nodes/0/node-none.tf.json").exists()
+    assert (tmp_path / ".colors/github-dwh-test/compute/shared/backend.tf.json").exists()
     assert (tmp_path / ".colors/github-dwh-test/ansible/create.yml").exists()
 
 

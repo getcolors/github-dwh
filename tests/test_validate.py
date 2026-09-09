@@ -17,9 +17,9 @@ def test_run_requires_only_data_credentials():
 
 
 def test_r2_backend_requires_bucket_endpoint_and_credentials():
-    errors = state_errors({"provider-backend": "r2"})
-    assert "required configuration is not set: r2-bucket" in errors
-    assert "required configuration is not set: r2-endpoint" in errors
+    errors = state_errors({"profile":"test", "provider-compute":"vultr", "provider-backend": "r2"})
+    assert ":r2-bucket is required" in errors
+    assert ":r2-endpoint is required" in errors
     create = secret_errors({"provider-backend": "r2"}, "create")
     assert "required credential is not set: COLORS_PAR_R2_ACCESS_KEY_ID" in create
     assert "required credential is not set: COLORS_PAR_R2_SECRET_ACCESS_KEY" in create

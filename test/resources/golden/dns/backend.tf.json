@@ -6,7 +6,7 @@
         "endpoints" : {
           "s3" : "https://example.r2.cloudflarestorage.com"
         },
-        "key" : "github-dwh-test/tofu.tfstate",
+        "key" : "github-dwh-test/dns.tfstate",
         "region" : "auto",
         "skip_credentials_validation" : true,
         "skip_metadata_api_check" : true,

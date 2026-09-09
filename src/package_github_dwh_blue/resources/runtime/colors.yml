@@ -19,13 +19,3 @@ lightdash-r2-bucket: <{ lightdash-r2-bucket }>
 lightdash-r2-endpoint: <{ lightdash-r2-endpoint }>
 lightdash-r2-region: <{ lightdash-r2-region }>
 pocketbase-superuser-email: <{ pocketbase-superuser-email }>
-provider-compute: vultr
-provider-dns: cloudflare
-provider-backend: local
-compute-prevent-destroy: true
-vultr-name: <{ vultr-name }>
-vultr-region: <{ vultr-region }>
-vultr-plan: <{ vultr-plan }>
-vultr-os-id: <{ vultr-os-id }>
-vultr-ssh-key-name: <{ vultr-ssh-key-name }>
-ssh-private-key: /root/.ssh/id_ed25519

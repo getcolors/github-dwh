@@ -35,3 +35,11 @@ Run safe checks first:
 With explicit authorization, `./blue create` provisions and converges the host. `./blue run` performs a real GitHub load and dbt build. `./blue delete` is guarded and destructive.
 
 PocketBase stores whole-run control-plane records only. Do not add task DAGs, step queues, sensors, or retry policy to it.
+
+Compute provisioning and SSH key ownership are delegated to `colors-compute`.
+Managed keys use `~/.ssh/<profile>`; the package no longer generates a custom
+key file. R2 and S3 are the remote state backends; S3 uses the ambient AWS
+credential chain. Daily backups at hour 3 and disabled IPv6 are explicit
+requirements, currently supported by the library Vultr adapter. Old combined
+`<profile>/tofu.tfstate` deployments require a reviewed migration before these
+commands can converge them. Do not remove state to bypass ownership checks.

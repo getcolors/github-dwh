@@ -31,3 +31,7 @@ curl http://127.0.0.1:8080/api/v1/health
 ```
 
 Retry failures by creating a new complete run. Do not edit run steps or add task-level retry state to PocketBase.
+
+## Compute ownership migration
+
+The library records compute ownership and active operations under `<profile>/compute/coordination.json`. Its shared and singleton node states are separate from DNS. Existing `<profile>/tofu.tfstate` combines the old VM, SSH registration, firewall and DNS; it is deliberately refused by the new runtime. Back up and review that state before a separately authorized migration or clean rebuild. Do not delete the old state object merely to bypass the guard. Package-generated `.ssh/id_ed25519` keys are not silently adopted; new managed deployments use `~/.ssh/<profile>`. A held or uncertain journal requires explicit recovery before retry.

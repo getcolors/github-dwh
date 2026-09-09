@@ -2,7 +2,7 @@
 
 ## Repository
 
-`github-dwh` is a Blue Package Skill for a single-host GitHub organization warehouse. OpenTofu provisions one Vultr VM and Cloudflare DNS; Ansible converges ClickHouse, PocketBase, Caddy, a systemd dispatcher, and the Blue/dlt/dbt runtime. Git owns desired state and the workflow graph. PocketBase owns schedules and whole-run history only.
+`github-dwh` is a Blue Package Skill for a single-host GitHub organization warehouse. `colors-compute` owns one VM, SSH lifecycle and remote compute state; the package owns Cloudflare DNS; Ansible converges ClickHouse, PocketBase, Caddy, a systemd dispatcher, and the Blue/dlt/dbt runtime. Git owns desired state and the workflow graph. PocketBase owns schedules and whole-run history only.
 
 ## Commands
 

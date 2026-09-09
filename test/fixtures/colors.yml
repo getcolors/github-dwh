@@ -26,5 +26,3 @@ vultr-name: github-dwh-test
 vultr-region: ams
 vultr-plan: vc2-4c-8gb
 vultr-os-id: 2284
-vultr-ssh-key-name: github-dwh-test
-ssh-private-key: .ssh/id_ed25519
