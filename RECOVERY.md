@@ -30,6 +30,8 @@ curl http://127.0.0.1:8123/ping
 curl http://127.0.0.1:8080/api/v1/health
 ```
 
+The dispatcher checks systemd before it launches queued runs. A worker that stops without recording a result becomes failed on the next timer tick. Launch attempts have a two-minute grace period, measured from `started`; the worker replaces that timestamp after authentication. Legacy records use `created` when available. If systemd cannot report the unit state, the pipeline stays blocked until a later check succeeds. Cancellation covers launching and running workers and releases the pipeline only after systemd confirms the unit has stopped.
+
 Retry failures by creating a new complete run. Do not edit run steps or add task-level retry state to PocketBase.
 
 ## Compute ownership migration
